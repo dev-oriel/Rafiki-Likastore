@@ -2,6 +2,43 @@ import User from "../models/user.model.js";
 import Product from "../models/product.model.js";
 import Order from "../models/order.model.js";
 
+// --- New Stats Function ---
+
+// @desc    Get dashboard stats
+// @route   GET /api/admin/stats
+// @access  Private/Admin
+const getDashboardStats = async (req, res, next) => {
+  try {
+    // 1. Get total revenue from paid orders
+    const paidOrders = await Order.find({ isPaid: true });
+    const totalRevenue = paidOrders.reduce(
+      (acc, order) => acc + order.totalPrice,
+      0
+    );
+
+    // 2. Get counts
+    const totalOrders = await Order.countDocuments();
+    const totalProducts = await Product.countDocuments();
+    const totalUsers = await User.countDocuments({ isAdmin: false }); // Only count non-admin users
+
+    // 3. Get recent orders (for dashboard widget)
+    const recentOrders = await Order.find({})
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate("user", "name");
+
+    res.json({
+      totalRevenue,
+      totalOrders,
+      totalProducts,
+      totalUsers,
+      recentOrders,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // --- User Management ---
 
 // @desc    Get all users
@@ -16,9 +53,7 @@ const getAllUsers = async (req, res, next) => {
   }
 };
 
-// @desc    Delete a user
-// @route   DELETE /api/admin/users/:id
-// @access  Private/Admin
+// ... (deleteUser, getUserById, updateUser functions are unchanged) ...
 const deleteUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
@@ -37,10 +72,6 @@ const deleteUser = async (req, res, next) => {
     next(error);
   }
 };
-
-// @desc    Get user by ID
-// @route   GET /api/admin/users/:id
-// @access  Private/Admin
 const getUserById = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id).select("-password");
@@ -54,10 +85,6 @@ const getUserById = async (req, res, next) => {
     next(error);
   }
 };
-
-// @desc    Update user (e.g., make admin)
-// @route   PUT /api/admin/users/:id
-// @access  Private/Admin
 const updateUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
@@ -83,10 +110,7 @@ const updateUser = async (req, res, next) => {
 };
 
 // --- Product Management ---
-
-// @desc    Create a product
-// @route   POST /api/admin/products
-// @access  Private/Admin
+// ... (createProduct, updateProduct, deleteProduct functions are unchanged) ...
 const createProduct = async (req, res, next) => {
   try {
     const { name, price, description, image, category, countInStock } =
@@ -98,7 +122,7 @@ const createProduct = async (req, res, next) => {
       image,
       category,
       countInStock,
-      user: req.user._id, // Set user to the logged-in admin
+      user: req.user._id,
     });
 
     const createdProduct = await product.save();
@@ -107,10 +131,6 @@ const createProduct = async (req, res, next) => {
     next(error);
   }
 };
-
-// @desc    Update a product
-// @route   PUT /api/admin/products/:id
-// @access  Private/Admin
 const updateProduct = async (req, res, next) => {
   try {
     const { name, price, description, image, category, countInStock } =
@@ -135,10 +155,6 @@ const updateProduct = async (req, res, next) => {
     next(error);
   }
 };
-
-// @desc    Delete a product
-// @route   DELETE /api/admin/products/:id
-// @access  Private/Admin
 const deleteProduct = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -161,16 +177,23 @@ const deleteProduct = async (req, res, next) => {
 // @access  Private/Admin
 const getAllOrders = async (req, res, next) => {
   try {
-    const orders = await Order.find({}).populate("user", "id name");
+    // Check for a limit query (e.g., ?limit=5)
+    const query = Order.find({})
+      .populate("user", "id name")
+      .sort({ createdAt: -1 });
+
+    if (req.query.limit) {
+      query.limit(parseInt(req.query.limit, 10));
+    }
+
+    const orders = await query;
     res.json(orders);
   } catch (error) {
     next(error);
   }
 };
 
-// @desc    Update order to delivered
-// @route   PUT /api/admin/orders/:id/deliver
-// @access  Private/Admin
+// ... (updateOrderToDelivered is unchanged) ...
 const updateOrderToDelivered = async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -189,6 +212,7 @@ const updateOrderToDelivered = async (req, res, next) => {
 };
 
 export {
+  getDashboardStats,
   getAllUsers,
   deleteUser,
   getUserById,

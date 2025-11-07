@@ -3,15 +3,16 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import { Loader, Upload } from "lucide-react";
+import { CATEGORIES } from "../../constants/categories"; // 1. Import your new categories
 
 const AdminProductEdit = () => {
-  const { id: productId } = useParams(); // Get product ID from URL
+  const { id: productId } = useParams();
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
   const [price, setPrice] = useState(0);
   const [image, setImage] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState(CATEGORIES[0]); // 2. Set default category
   const [countInStock, setCountInStock] = useState(0);
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ const AdminProductEdit = () => {
       const fetchProduct = async () => {
         try {
           setLoading(true);
-          const { data } = await api.get(`/products/${productId}`); // Use public route
+          const { data } = await api.get(`/products/${productId}`);
           setName(data.name);
           setPrice(data.price);
           setImage(data.image);
@@ -47,7 +48,7 @@ const AdminProductEdit = () => {
     if (!file) return;
 
     const formData = new FormData();
-    formData.append("avatar", file); // 'avatar' key is fine, our backend accepts it
+    formData.append("avatar", file);
     setUploading(true);
 
     try {
@@ -132,7 +133,7 @@ const AdminProductEdit = () => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
-              Price
+              Price (KES)
             </label>
             <input
               type="number"
@@ -157,19 +158,25 @@ const AdminProductEdit = () => {
           </div>
         </div>
 
+        {/* --- THIS IS THE FIX --- */}
         <div>
           <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
             Category
           </label>
-          <input
-            type="text"
+          <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 shadow-sm p-3"
-            placeholder="e.g., Whiskey"
             required
-          />
+          >
+            {CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
         </div>
+        {/* --- END OF FIX --- */}
 
         <div>
           <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">

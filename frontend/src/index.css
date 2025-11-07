@@ -24,3 +24,42 @@
       radial-gradient(circle at 90% 20%, hsla(26, 100%, 50%, 0.15), transparent 50%);
   }
 }
+
+.thumb {
+  pointer-events: none;
+  position: absolute;
+  height: 0;
+  width: 100%;
+  outline: none;
+  z-index: 20;
+}
+
+.thumb,
+.thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.thumb::-webkit-slider-thumb {
+  background-color: #f59e0b; /* amber-500 */
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 0 1px 1px #fff;
+  cursor: pointer;
+  height: 18px;
+  width: 18px;
+  pointer-events: all;
+  position: relative;
+}
+
+.thumb::-moz-range-thumb {
+  background-color: #f59e0b; /* amber-500 */
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 0 1px 1px #fff;
+  cursor: pointer;
+  height: 18px;
+  width: 18px;
+  pointer-events: all;
+  position: relative;
+}

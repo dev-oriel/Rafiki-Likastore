@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ProductCard from "./ProductCard";
 import api from "../../services/api";
+import { Link } from "react-router-dom";
 
 const TopPicks = () => {
   const [topPicks, setTopPicks] = useState([]);
@@ -8,8 +9,12 @@ const TopPicks = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const { data } = await api.get("/products"); // Real API call
-        setTopPicks(data.slice(0, 4)); // Takes the first 4
+        const { data } = await api.get("/products"); // data is { products: [...] }
+
+        // --- THIS IS THE FIX ---
+        // We must get the array from the 'products' property
+        setTopPicks(data.products.slice(0, 4));
+        // --- END OF FIX ---
       } catch (err) {
         console.error("Failed to fetch top picks", err);
       }
@@ -27,6 +32,15 @@ const TopPicks = () => {
           {topPicks.map((product) => (
             <ProductCard key={product._id} product={product} />
           ))}
+        </div>
+
+        <div className="mt-8 text-right">
+          <Link
+            to="/shop"
+            className="text-sm font-medium text-amber-600 hover:text-amber-500 hover:underline"
+          >
+            View more &rarr;
+          </Link>
         </div>
       </div>
     </section>

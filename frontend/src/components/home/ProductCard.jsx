@@ -2,8 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import toast from "react-hot-toast";
+import { formatCurrency } from "../../utils/formatCurrency"; // 1. Import KES formatter
 
-// 1. Get the base URL
 const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
 const ProductCard = ({ product }) => {
@@ -15,7 +15,6 @@ const ProductCard = ({ product }) => {
     toast.success(`${product.name} added to cart!`);
   };
 
-  // 2. Check if image is an external link or a local path
   const imageUrl = product.image.startsWith("http")
     ? product.image
     : `${API_BASE_URL}${product.image}`;
@@ -29,7 +28,7 @@ const ProductCard = ({ product }) => {
         <img
           className="h-full w-full object-contain object-center p-4"
           alt={product.name}
-          src={imageUrl} // 3. Use the corrected URL
+          src={imageUrl}
         />
         <button
           onClick={handleAddToCart}
@@ -45,9 +44,12 @@ const ProductCard = ({ product }) => {
         </button>
       </Link>
       <div>
-        <h3 className="font-medium leading-tight">{product.name}</h3>
+        <h3 className="font-medium text-sm leading-tight line-clamp-2 h-10">
+          {product.name}
+        </h3>
         <div className="flex items-center justify-between text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-          <p>${product.price.toFixed(2)}</p>
+          {/* 2. Use KES formatter */}
+          <p>{formatCurrency(product.price)}</p>
           <div className="flex items-center gap-1">
             <span
               className="material-symbols-outlined text-amber-500"

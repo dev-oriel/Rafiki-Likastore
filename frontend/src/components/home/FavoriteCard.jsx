@@ -11,7 +11,10 @@ const FavoriteCard = ({ product }) => {
     : `${API_BASE_URL}${product.image}`;
 
   return (
-    <div className="flex flex-col gap-3 min-w-48">
+    // --- THIS IS THE FIX ---
+    // Changed min-w-48 to a larger fixed width: w-64
+    <div className="flex flex-col gap-3 w-64">
+      {/* --- END OF FIX --- */}
       <Link
         to={`/product/${product._id}`}
         className="relative w-full overflow-hidden rounded-lg bg-gray-50 dark:bg-zinc-800 aspect-[3/4]"
@@ -28,7 +31,9 @@ const FavoriteCard = ({ product }) => {
         )}
       </Link>
       <div>
-        <h3 className="font-medium text-sm leading-tight">{product.name}</h3>
+        <h3 className="font-medium text-sm leading-tight line-clamp-2 h-10">
+          {product.name}
+        </h3>
         <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
           ${product.price.toFixed(2)}
         </p>

@@ -1,6 +1,7 @@
 import express from "express";
 const router = express.Router();
 import {
+  getDashboardStats, // 1. Import
   getAllUsers,
   deleteUser,
   getUserById,
@@ -16,6 +17,9 @@ import { protect, admin } from "../middleware/auth.middleware.js";
 // All routes in this file are protected and for admins only
 router.use(protect);
 router.use(admin);
+
+// --- Dashboard Route ---
+router.route("/stats").get(getDashboardStats); // 2. Add new route
 
 // --- User Routes ---
 router.route("/users").get(getAllUsers);

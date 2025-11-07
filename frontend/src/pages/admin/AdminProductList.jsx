@@ -14,8 +14,12 @@ const AdminProductList = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const { data } = await api.get("/products"); // Use public route to get all
-      setProducts(data);
+      const { data } = await api.get("/products"); // data = { products: [], ... }
+
+      // --- THIS IS THE FIX ---
+      // We must extract the array from the 'products' property
+      setProducts(data.products);
+      // --- END OF FIX ---
     } catch (err) {
       toast.error("Failed to fetch products");
     } finally {
@@ -74,7 +78,7 @@ const AdminProductList = () => {
                   Name
                 </th>
                 <th className="p-4 font-semibold text-zinc-700 dark:text-zinc-300">
-                  Price
+                  Price (KES)
                 </th>
                 <th className="p-4 font-semibold text-zinc-700 dark:text-zinc-300">
                   Stock
@@ -106,12 +110,12 @@ const AdminProductList = () => {
                     {product.name}
                   </td>
                   <td className="p-4 text-zinc-600 dark:text-zinc-400">
-                    ${product.price.toFixed(2)}
+                    {product.price.toLocaleString("en-KE")}
                   </td>
                   <td className="p-4 text-zinc-600 dark:text-zinc-400">
                     {product.countInStock}
                   </td>
-                  <td className="p-4 text-zinc-600 dark:text-zinc-400">
+                  <td className="p-4 text-zinc-600 dark:text-zinc-4D00">
                     {product.category}
                   </td>
                   <td className="p-4 text-right">
