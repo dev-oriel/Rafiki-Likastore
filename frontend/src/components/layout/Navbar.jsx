@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext"; // 1. Import useCart
 
 // Logo for Rafiki Likastore
 const Logo = () => (
@@ -19,9 +20,7 @@ const Navbar = () => {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
   const { user } = useAuth(); // Use our AuthContext
-
-  // TODO: Replace this with your Cart Context when ready
-  const { count } = { count: 2 }; // Placeholder cart count
+  const { itemCount } = useCart(); // 2. Use real itemCount from CartContext
 
   const handleSubmitSearch = (e) => {
     e?.preventDefault?.();
@@ -132,9 +131,10 @@ const Navbar = () => {
               <span className="material-symbols-outlined text-2xl">
                 shopping_cart
               </span>
-              {count > 0 && (
+              {/* 3. Use real itemCount from context */}
+              {itemCount > 0 && (
                 <span className="absolute -top-1 -right-2 bg-amber-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {count}
+                  {itemCount}
                 </span>
               )}
             </button>

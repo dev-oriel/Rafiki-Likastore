@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import "./index.css";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { CartProvider } from "./context/CartContext.jsx"; // 1. Import CartProvider
 
 // Layouts and Pages
 import App from "./App.jsx";
@@ -16,19 +17,21 @@ import CartPage from "./pages/CartPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import GuestRoute from "./components/GuestRoute.jsx";
-import MyOrdersPage from "./pages/MyOrdersPage.jsx"; // 1. Import the new page
+import MyOrdersPage from "./pages/MyOrdersPage.jsx";
+import CheckoutPage from "./pages/CheckoutPage.jsx"; // 2. Import CheckoutPage
+import OrderSuccessPage from "./pages/OrderSuccessPage.jsx"; // 3. Import OrderSuccessPage
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
     children: [
-      // --- Public Pages (Everyone can see) ---
+      // --- Public Pages ---
       { index: true, element: <HomePage /> },
       { path: "shop", element: <ShopPage /> },
       { path: "product/:slug", element: <ProductDetailPage /> },
 
-      // --- Guest-Only Pages (Redirect if logged in) ---
+      // --- Guest-Only Pages ---
       {
         element: <GuestRoute />,
         children: [
@@ -37,13 +40,15 @@ const router = createBrowserRouter([
         ],
       },
 
-      // --- Protected Pages (Redirect if not logged in) ---
+      // --- Protected Pages ---
       {
         element: <ProtectedRoute />,
         children: [
           { path: "cart", element: <CartPage /> },
           { path: "profile", element: <ProfilePage /> },
-          { path: "my-orders", element: <MyOrdersPage /> }, // 2. Add the new route
+          { path: "my-orders", element: <MyOrdersPage /> },
+          { path: "checkout", element: <CheckoutPage /> }, // 4. Add checkout route
+          { path: "order-confirmed/:id", element: <OrderSuccessPage /> }, // 5. Add success route
         ],
       },
     ],
@@ -53,8 +58,12 @@ const router = createBrowserRouter([
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AuthProvider>
-      <RouterProvider router={router} />
-      <Toaster position="top-center" />
+      <CartProvider>
+        {" "}
+        {/* 6. Wrap the RouterProvider */}
+        <RouterProvider router={router} />
+        <Toaster position="top-center" />
+      </CartProvider>
     </AuthProvider>
   </StrictMode>
 );
