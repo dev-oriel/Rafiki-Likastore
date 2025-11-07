@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+/* Apply global font and icon styles */
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    font-size: 20px; /* Default size */
+  }
+}
+
+/* Custom hero background gradient */
+@layer utilities {
+  .hero-bg {
+    background-image: radial-gradient(circle at 10% 90%, hsla(26, 100%, 50%, 0.1), transparent 40%),
+      radial-gradient(circle at 90% 20%, hsla(26, 100%, 50%, 0.15), transparent 50%);
+  }
+  
+  .dark .hero-bg {
+    background-image: radial-gradient(circle at 10% 90%, hsla(26, 100%, 50%, 0.1), transparent 40%),
+      radial-gradient(circle at 90% 20%, hsla(26, 100%, 50%, 0.15), transparent 50%);
+  }
+}

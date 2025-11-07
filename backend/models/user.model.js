@@ -1,6 +1,20 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
+// --- New Schemas for Profile ---
+const addressSchema = new mongoose.Schema({
+  label: { type: String, required: true },
+  details: { type: String, required: true },
+  isPrimary: { type: Boolean, default: false },
+});
+
+const paymentMethodSchema = new mongoose.Schema({
+  type: { type: String, default: "M-Pesa" },
+  number: { type: String, required: true },
+  primary: { type: Boolean, default: false },
+});
+// --- End New Schemas ---
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -16,16 +30,25 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    dob: {
+      type: Date,
+      required: true,
+    },
     phone: {
       type: String,
       required: true,
-      unique: true, // Important for M-Pesa
+      unique: true,
     },
     isAdmin: {
       type: Boolean,
       required: true,
       default: false,
     },
+    avatar: {
+      type: String,
+    },
+    addresses: [addressSchema],
+    paymentMethods: [paymentMethodSchema],
   },
   {
     timestamps: true,

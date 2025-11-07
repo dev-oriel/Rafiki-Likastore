@@ -1,18 +1,17 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import Navbar from "./components/Navbar.jsx";
+import Navbar from "./components/layout/Navbar";
+import Footer from "./components/layout/Footer";
 
 const App = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
+    // Use the new design's background colors
+    <div className="flex min-h-screen w-full flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
       <Navbar />
-      <main className="grow container mx-auto p-4">
-        {/* Outlet renders the active page (HomePage, LoginPage, etc.) */}
+      <main className="grow">
         <Outlet />
       </main>
-      <footer className="bg-gray-800 text-white p-4 text-center">
-        Copyright &copy; Rafiki Likastore 2025
-      </footer>
+      <Footer />
     </div>
   );
 };

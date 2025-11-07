@@ -5,15 +5,11 @@ import User from "../models/user.model.js";
 const protect = async (req, res, next) => {
   let token;
 
-  // Read the JWT from the 'Authorization' header
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    try {
-      // Get token from header
-      token = req.headers.authorization.split(" ")[1];
+  // 1. Read the JWT from the cookie
+  token = req.cookies.jwt;
 
+  if (token) {
+    try {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
@@ -26,9 +22,8 @@ const protect = async (req, res, next) => {
       res.status(401);
       throw new Error("Not authorized, token failed");
     }
-  }
-
-  if (!token) {
+  } else {
+    // 2. This is the error you are getting
     res.status(401);
     throw new Error("Not authorized, no token");
   }
