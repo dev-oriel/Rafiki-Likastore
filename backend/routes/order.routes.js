@@ -8,9 +8,10 @@ import {
 } from "../controllers/order.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 
-router.post("/", protect, createOrder);
-router.get("/myorders", protect, getMyOrders);
-router.get("/:id", protect, getOrderById);
-router.put("/:id/pay", protect, updateOrderToPaid); // Note: This might be triggered by your payment callback instead
+// These routes are for logged-in users
+router.route("/").post(protect, createOrder);
+router.route("/myorders").get(protect, getMyOrders);
+router.route("/:id").get(protect, getOrderById);
+router.route("/:id/pay").put(protect, updateOrderToPaid);
 
 export default router;

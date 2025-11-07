@@ -15,9 +15,9 @@ const GuestRoute = () => {
   }
 
   if (user) {
-    // If the user is logged in, redirect them away from the guest page
-    // to the homepage (or '/profile' if you prefer).
-    return <Navigate to="/" replace />;
+    // --- THIS IS THE FIX ---
+    // If a user is logged in, redirect them based on their role.
+    return <Navigate to={user.isAdmin ? "/admin/dashboard" : "/"} replace />;
   }
 
   // If not loading and no user, show the guest page (Login or Register)

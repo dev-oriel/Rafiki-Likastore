@@ -9,6 +9,7 @@ import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
 
 // Helper function to check age
 const isOldEnough = (dateString) => {
+  if (!dateString) return false;
   const today = new Date();
   const birthDate = new Date(dateString);
   let age = today.getFullYear() - birthDate.getFullYear();
@@ -33,6 +34,10 @@ const RegisterPage = () => {
   const handleSignUp = async (e) => {
     e.preventDefault();
 
+    if (!dob) {
+      toast.error("Please enter your date of birth.");
+      return;
+    }
     if (!isOldEnough(dob)) {
       toast.error("You must be at least 18 years old to register.");
       return;
@@ -44,17 +49,11 @@ const RegisterPage = () => {
 
     setLoading(true);
     try {
-      // 1. Pass 'dob' to the register function
-      const success = await register(
-        name,
-        email,
-        password,
-        formattedPhone,
-        dob
-      );
-      if (success) {
-        navigate("/");
-      }
+      // 1. Just call register.
+      // The GuestRoute will automatically handle the redirect.
+      await register(name, email, password, formattedPhone, dob);
+
+      // 2. REMOVED navigation logic from here.
     } catch (error) {
       console.error(error);
     } finally {
@@ -71,7 +70,7 @@ const RegisterPage = () => {
         className="max-w-md w-full bg-white dark:bg-zinc-900/80 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden border dark:border-zinc-800"
       >
         <div className="p-8">
-          <h1 className="text-3xl font-bold mb-6 text-center bg-linear-to-r from-amber-400 to-amber-500 text-transparent bg-clip-text">
+          <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-amber-400 to-amber-500 text-transparent bg-clip-text">
             Create Account
           </h1>
           <form onSubmit={handleSignUp}>
@@ -114,7 +113,7 @@ const RegisterPage = () => {
             <PasswordStrengthMeter password={password} />
 
             <motion.button
-              className="mt-6 w-full py-3 px-4 bg-linear-to-r from-amber-500 to-amber-600 text-white 
+              className="mt-6 w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white 
                 font-bold rounded-lg shadow-lg hover:from-amber-600
                 hover:to-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2
                 focus:ring-offset-white dark:focus:ring-offset-zinc-900 transition duration-200 disabled:opacity-50"

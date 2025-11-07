@@ -2,8 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import path from "path"; // 1. Import path
-import { fileURLToPath } from "url"; // 2. Import url
+import path from "path";
+import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 import { notFound, errorHandler } from "./middleware/error.middleware.js";
 
@@ -12,7 +12,8 @@ import productRoutes from "./routes/product.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
-import uploadRoutes from "./routes/upload.routes.js"; // 3. Import upload route
+import uploadRoutes from "./routes/upload.routes.js";
+import adminRoutes from "./routes/admin.routes.js"; // 1. Import admin routes
 
 dotenv.config();
 
@@ -46,7 +47,8 @@ app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
-app.use("/api/upload", uploadRoutes); // 4. Use the new upload route
+app.use("/api/upload", uploadRoutes);
+app.use("/api/admin", adminRoutes); // 2. Use the new admin routes
 
 // 5. Serve static files from the 'uploads' directory
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));

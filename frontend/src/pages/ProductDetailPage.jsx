@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import api from "../services/api";
 import toast from "react-hot-toast";
-import { useCart } from "../context/CartContext"; // 1. Import useCart
+import { useCart } from "../context/CartContext";
 import RelatedProducts from "../components/product/RelatedProducts";
 import ProductInfoTabs from "../components/product/ProductInfoTabs";
+import { Loader } from "lucide-react"; // Import Loader
 
-// --- (Breadcrumbs component remains the same) ---
+// (Breadcrumbs component)
 const Breadcrumbs = ({ category, name }) => (
   <div className="flex flex-wrap gap-2 mb-8">
     <Link
@@ -33,25 +34,31 @@ const Breadcrumbs = ({ category, name }) => (
   </div>
 );
 
-// --- (ProductImage component remains the same) ---
+// (Helper to get the server URL for images)
+const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
+
+// (ProductImage component)
 const ProductImage = ({ image, name }) => (
   <div className="w-full aspect-[3/4] rounded-lg bg-white dark:bg-zinc-900/50 p-6 flex items-center justify-center relative group">
     <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4/5 h-2/5 bg-amber-500/20 blur-3xl rounded-full"></div>
     <div
       className="w-full h-full bg-center bg-no-repeat bg-contain transition-transform duration-300 group-hover:scale-110 z-10"
       alt={name}
-      style={{ backgroundImage: `url("${API_BASE_URL}${image}")` }} // Added base URL
+      style={{
+        backgroundImage: `url("${
+          image.startsWith("http") ? image : API_BASE_URL + image
+        }")`,
+      }}
     ></div>
   </div>
 );
 
-// --- (ProductDetails component is now functional) ---
+// (ProductDetails component)
 const ProductDetails = ({ product }) => {
   const [quantity, setQuantity] = useState(1);
-  const { addToCart } = useCart(); // 2. Get useCart
+  const { addToCart } = useCart();
 
   const handleAddToCart = () => {
-    // 3. Pass product AND quantity
     addToCart(product, quantity);
     toast.success(`${quantity} x ${product.name} added to cart!`);
   };
@@ -106,7 +113,7 @@ const ProductDetails = ({ product }) => {
           </button>
         </div>
         <button
-          onClick={handleAddToCart} // 4. Click handler is now active
+          onClick={handleAddToCart}
           className="flex-1 flex items-center justify-center gap-3 rounded-full h-12 bg-amber-500 text-white text-base font-bold leading-normal tracking-wide hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20"
         >
           <span className="material-symbols-outlined">add_shopping_cart</span>
@@ -117,10 +124,7 @@ const ProductDetails = ({ product }) => {
   );
 };
 
-// --- (Helper to get the server URL for images) ---
-const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
-
-// --- (Main Page Component - Now fetches data) ---
+// (Main Page Component)
 const ProductDetailPage = () => {
   const { id } = useParams(); // Get ID from router
   const [product, setProduct] = useState(null);
@@ -131,7 +135,7 @@ const ProductDetailPage = () => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const { data } = await api.get(`/products/${id}`);
+        const { data } = await api.get(`/products/${id}`); // Real API call
         setProduct(data);
       } catch (err) {
         console.error(err);
@@ -144,7 +148,11 @@ const ProductDetailPage = () => {
   }, [id]);
 
   if (loading) {
-    return <div className="text-center py-20">Loading...</div>;
+    return (
+      <div className="flex justify-center py-20">
+        <Loader className="animate-spin" />
+      </div>
+    );
   }
 
   if (error) {

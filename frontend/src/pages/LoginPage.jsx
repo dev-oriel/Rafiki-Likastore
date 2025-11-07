@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import Input from "../components/Input";
+import toast from "react-hot-toast"; // Import toast for error handling
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -11,19 +12,21 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Still used for "Forgot Password" etc.
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const success = await login(email, password);
-      if (success) {
-        navigate("/"); // Redirect to home on success
-      }
+      // 1. Just call login.
+      // The GuestRoute will automatically handle the redirect.
+      await login(email, password);
+
+      // 2. REMOVED navigation logic from here.
     } catch (error) {
-      // Error is already toasted by AuthContext
+      // This is just a fallback, context handles most errors
       console.error(error);
+      toast.error("An unexpected error occurred.");
     } finally {
       setLoading(false);
     }

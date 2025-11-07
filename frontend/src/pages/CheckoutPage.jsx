@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link, Navigate } from "react-router-dom";
@@ -6,7 +6,7 @@ import api from "../services/api";
 import toast from "react-hot-toast";
 import { Loader } from "lucide-react";
 
-// Re-usable Order Summary component for Checkout and Success pages
+// (Helper component - We'll add 'export' to the original)
 export const CheckoutSummary = ({ items, subtotal, deliveryFee, total }) => (
   <div className="bg-white dark:bg-zinc-900 rounded-lg p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm">
     <h2 className="text-xl font-bold text-zinc-900 dark:text-gray-100 mb-6">
@@ -20,7 +20,13 @@ export const CheckoutSummary = ({ items, subtotal, deliveryFee, total }) => (
         >
           <div className="flex items-center gap-3">
             <img
-              src={item.image}
+              src={
+                item.image.startsWith("http")
+                  ? item.image
+                  : `${import.meta.env.VITE_API_URL.replace("/api", "")}${
+                      item.image
+                    }`
+              }
               alt={item.name}
               className="size-10 rounded-md object-contain bg-zinc-50 dark:bg-zinc-800"
             />
@@ -62,57 +68,90 @@ export const CheckoutSummary = ({ items, subtotal, deliveryFee, total }) => (
 
 const CheckoutPage = () => {
   const { cartItems, subtotal, clearCart } = useCart();
-  const { user } = useAuth();
-  const [deliveryLocation, setDeliveryLocation] = useState("");
+  const { user } = useAuth(); // 1. Get user from auth
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const deliveryFee = subtotal > 0 ? 5.0 : 0.0; // Same logic as cart
+  // 2. Find primary address and payment from user
+  const primaryAddress = useMemo(
+    () => user?.addresses?.find((a) => a.isPrimary) || null,
+    [user]
+  );
+
+  const primaryPayment = useMemo(
+    () =>
+      user?.paymentMethods?.find((p) => p.primary) || {
+        number: user?.phone || "",
+      }, // Fallback to user phone
+    [user]
+  );
+
+  // 3. Set default delivery location to primary address, but make it editable
+  const [deliveryLocation, setDeliveryLocation] = useState("");
+
+  useEffect(() => {
+    if (primaryAddress) {
+      setDeliveryLocation(primaryAddress.details);
+    }
+  }, [primaryAddress]);
+
+  // 4. Calculate totals
+  const deliveryFee = subtotal > 0 ? 5.0 : 0.0;
   const total = subtotal + deliveryFee;
 
-  // Redirect to shop if cart is empty
-  if (cartItems.length === 0) {
+  // 5. Redirect to shop if cart is empty
+  if (cartItems.length === 0 && !loading) {
     return <Navigate to="/shop" replace />;
   }
 
-  // This is what we send to the backend
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     if (!deliveryLocation) {
       toast.error("Please enter a delivery location");
       return;
     }
+    if (!primaryPayment.number) {
+      toast.error("Please add a payment phone number in your profile");
+      return;
+    }
 
     setLoading(true);
 
-    // 1. Format cart items for the backend model
     const orderItems = cartItems.map((item) => ({
       name: item.name,
       qty: item.quantity,
       image: item.image,
       price: item.price,
-      product: item._id, // Link to the product
+      product: item._id, // This will now be a valid ObjectId
     }));
 
     try {
-      // 2. Create the order in the database
-      const { data } = await api.post("/orders", {
+      // 6. Create the order
+      const { data: createdOrder } = await api.post("/orders", {
         orderItems,
         deliveryLocation,
         totalPrice: total,
-        paymentMethod: "M-Pesa", // As defined in your model
+        paymentMethod: "M-Pesa",
       });
 
-      // 3. Clear the cart from context and localStorage
-      clearCart();
+      // 7. (FUTURE) Initiate STK Push
+      // We use the primaryPayment number
+      toast.success(
+        `Order placed! Sending STK push to ${primaryPayment.number}...`
+      );
+      // await api.post('/payments/stkpush', {
+      //   orderId: createdOrder._id,
+      //   phone: primaryPayment.number.replace(/\s/g, ''), // Remove spaces
+      //   amount: total,
+      // });
 
-      // 4. Redirect to the order success page with the new order ID
-      navigate(`/order-confirmed/${data._id}`);
+      // 8. Clear cart and navigate
+      clearCart();
+      navigate(`/order-confirmed/${createdOrder._id}`);
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to place order");
       setLoading(false);
     }
-    // setLoading(false) is not needed here because we navigate away
   };
 
   return (
@@ -125,7 +164,6 @@ const CheckoutPage = () => {
           onSubmit={handlePlaceOrder}
           className="flex flex-col lg:flex-row gap-12 lg:gap-8"
         >
-          {/* Left Column: Delivery & Payment */}
           <div className="flex-grow space-y-8">
             <div className="bg-white dark:bg-zinc-900 rounded-lg p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm">
               <h2 className="text-xl font-bold text-zinc-900 dark:text-gray-100 mb-4">
@@ -135,14 +173,14 @@ const CheckoutPage = () => {
                 htmlFor="deliveryLocation"
                 className="block text-sm font-medium text-zinc-600 dark:text-zinc-400"
               >
-                Delivery Location (Hostel, Room, etc.)
+                Delivery Location (Hostel, Room, or Pickup Point)
               </label>
-              <input
+              <textarea
                 id="deliveryLocation"
-                type="text"
+                rows="3"
                 value={deliveryLocation}
                 onChange={(e) => setDeliveryLocation(e.target.value)}
-                placeholder="e.g., Kabarak University, S Block, Room 101"
+                placeholder="e.g., Kabarak University, S Block, Room 101. Please call on arrival."
                 className="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-500/20 sm:text-sm p-3"
                 required
               />
@@ -152,20 +190,27 @@ const CheckoutPage = () => {
               <h2 className="text-xl font-bold text-zinc-900 dark:text-gray-100 mb-4">
                 2. Payment Method
               </h2>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                All payments are completed via **M-Pesa** upon placing the
-                order.
+              <p className="text-zinc-600 dark:text-zinc-400 mb-4">
+                An STK push will be sent to your primary M-Pesa number.
               </p>
-              <div className="mt-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg flex items-center gap-4">
-                <img src="/images/mpesa.png" alt="M-Pesa" className="h-10" />
-                <div>
-                  <p className="font-bold text-zinc-800 dark:text-zinc-200">
-                    M-Pesa STK Push
-                  </p>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    A prompt will be sent to your phone: **{user.phone}**
-                  </p>
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <img src="/images/mpesa.png" alt="M-Pesa" className="h-10" />
+                  <div>
+                    <p className="font-bold text-zinc-800 dark:text-zinc-200">
+                      M-Pesa STK Push
+                    </p>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      {primaryPayment.number || "No phone number found"}
+                    </p>
+                  </div>
                 </div>
+                <Link
+                  to="/profile#payment-methods"
+                  className="text-sm font-medium text-amber-600 hover:underline"
+                >
+                  Change
+                </Link>
               </div>
             </div>
           </div>

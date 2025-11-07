@@ -1,17 +1,24 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useCart } from "../../context/CartContext"; // 1. Import useCart
-import toast from "react-hot-toast"; // 2. Import toast
+import { useCart } from "../../context/CartContext";
+import toast from "react-hot-toast";
+
+// 1. Get the base URL
+const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
 const ProductCard = ({ product }) => {
-  const { addToCart } = useCart(); // 3. Get the addToCart function
+  const { addToCart } = useCart();
 
-  // 4. Create the click handler
   const handleAddToCart = (e) => {
-    e.preventDefault(); // This stops the Link from navigating
+    e.preventDefault();
     addToCart(product);
     toast.success(`${product.name} added to cart!`);
   };
+
+  // 2. Check if image is an external link or a local path
+  const imageUrl = product.image.startsWith("http")
+    ? product.image
+    : `${API_BASE_URL}${product.image}`;
 
   return (
     <div className="flex flex-col gap-3 rounded-lg p-2 transition-shadow hover:shadow-md dark:hover:bg-zinc-800">
@@ -22,10 +29,10 @@ const ProductCard = ({ product }) => {
         <img
           className="h-full w-full object-contain object-center p-4"
           alt={product.name}
-          src={product.image}
+          src={imageUrl} // 3. Use the corrected URL
         />
         <button
-          onClick={handleAddToCart} // 5. Attach the handler
+          onClick={handleAddToCart}
           className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-amber-500 text-white transition-transform hover:scale-110"
           title="Add to cart"
         >
@@ -48,7 +55,7 @@ const ProductCard = ({ product }) => {
             >
               star
             </span>
-            <span>{product.rating}</span>
+            <span>{product.rating || 4.5}</span>
           </div>
         </div>
       </div>

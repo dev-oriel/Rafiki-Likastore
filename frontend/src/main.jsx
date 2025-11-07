@@ -4,7 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import "./index.css";
 import { AuthProvider } from "./context/AuthContext.jsx";
-import { CartProvider } from "./context/CartContext.jsx"; // 1. Import CartProvider
+import { CartProvider } from "./context/CartContext.jsx";
 
 // Layouts and Pages
 import App from "./App.jsx";
@@ -18,18 +18,28 @@ import ProfilePage from "./pages/ProfilePage.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import GuestRoute from "./components/GuestRoute.jsx";
 import MyOrdersPage from "./pages/MyOrdersPage.jsx";
-import CheckoutPage from "./pages/CheckoutPage.jsx"; // 2. Import CheckoutPage
-import OrderSuccessPage from "./pages/OrderSuccessPage.jsx"; // 3. Import OrderSuccessPage
+import CheckoutPage from "./pages/CheckoutPage.jsx";
+import OrderSuccessPage from "./pages/OrderSuccessPage.jsx";
+
+// --- Admin Imports ---
+import AdminRoute from "./components/AdminRoute.jsx";
+import AdminLayout from "./components/admin/AdminLayout.jsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
+import AdminProductList from "./pages/admin/AdminProductList.jsx";
+import AdminProductEdit from "./pages/admin/AdminProductEdit.jsx";
+import AdminOrderList from "./pages/admin/AdminOrderList.jsx";
+import AdminUserList from "./pages/admin/AdminUserList.jsx";
+import AdminTransactions from "./pages/admin/AdminTransactions.jsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <App />, // Your main app layout (Navbar, Footer)
     children: [
       // --- Public Pages ---
       { index: true, element: <HomePage /> },
       { path: "shop", element: <ShopPage /> },
-      { path: "product/:slug", element: <ProductDetailPage /> },
+      { path: "product/:id", element: <ProductDetailPage /> }, // Use :id
 
       // --- Guest-Only Pages ---
       {
@@ -47,8 +57,28 @@ const router = createBrowserRouter([
           { path: "cart", element: <CartPage /> },
           { path: "profile", element: <ProfilePage /> },
           { path: "my-orders", element: <MyOrdersPage /> },
-          { path: "checkout", element: <CheckoutPage /> }, // 4. Add checkout route
-          { path: "order-confirmed/:id", element: <OrderSuccessPage /> }, // 5. Add success route
+          { path: "checkout", element: <CheckoutPage /> },
+          { path: "order-confirmed/:id", element: <OrderSuccessPage /> },
+        ],
+      },
+    ],
+  },
+
+  // --- ADMIN ROUTES ---
+  {
+    path: "/admin",
+    element: <AdminRoute />, // 1. Protect all routes under /admin
+    children: [
+      {
+        element: <AdminLayout />, // 2. Use the new admin layout
+        children: [
+          { path: "dashboard", element: <AdminDashboard /> },
+          { path: "products", element: <AdminProductList /> },
+          { path: "products/create", element: <AdminProductEdit /> }, // Create
+          { path: "products/:id/edit", element: <AdminProductEdit /> }, // Edit
+          { path: "orders", element: <AdminOrderList /> },
+          { path: "users", element: <AdminUserList /> },
+          { path: "transactions", element: <AdminTransactions /> },
         ],
       },
     ],
@@ -59,8 +89,6 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AuthProvider>
       <CartProvider>
-        {" "}
-        {/* 6. Wrap the RouterProvider */}
         <RouterProvider router={router} />
         <Toaster position="top-center" />
       </CartProvider>
