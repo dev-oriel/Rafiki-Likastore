@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import { Plus, Edit, Trash2, Loader } from "lucide-react";
+import { formatCurrency } from "../../utils/formatCurrency";
 
 const AdminProductList = () => {
   const [products, setProducts] = useState([]);
@@ -14,11 +15,13 @@ const AdminProductList = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const { data } = await api.get("/products"); // data = { products: [], ... }
 
       // --- THIS IS THE FIX ---
-      // We must extract the array from the 'products' property
-      setProducts(data.products);
+      // 1. Call the new, non-paginated admin route
+      const { data } = await api.get("/admin/products");
+
+      // 2. Set state directly, as data is now an array [...]
+      setProducts(data);
       // --- END OF FIX ---
     } catch (err) {
       toast.error("Failed to fetch products");
@@ -34,7 +37,7 @@ const AdminProductList = () => {
   const deleteHandler = async (id) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
-        await api.delete(`/admin/products/${id}`); // Use admin route
+        await api.delete(`/admin/products/${id}`);
         toast.success("Product deleted");
         fetchProducts(); // Refresh list
       } catch (err) {
@@ -110,12 +113,12 @@ const AdminProductList = () => {
                     {product.name}
                   </td>
                   <td className="p-4 text-zinc-600 dark:text-zinc-400">
-                    {product.price.toLocaleString("en-KE")}
+                    {formatCurrency(product.price)}
                   </td>
                   <td className="p-4 text-zinc-600 dark:text-zinc-400">
                     {product.countInStock}
                   </td>
-                  <td className="p-4 text-zinc-600 dark:text-zinc-4D00">
+                  <td className="p-4 text-zinc-600 dark:text-zinc-400">
                     {product.category}
                   </td>
                   <td className="p-4 text-right">

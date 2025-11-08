@@ -92,4 +92,41 @@ const updateOrderToPaid = async (req, res, next) => {
   }
 };
 
-export { createOrder, getOrderById, getMyOrders, updateOrderToPaid };
+// @desc    Get order payment status
+// @route   GET /api/orders/:id/status
+// @access  Private
+const getOrderPaymentStatus = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (order) {
+      // Ensure only the user who made the order or an admin can see it
+      if (order.user._id.equals(req.user._id) || req.user.isAdmin) {
+        // --- THIS IS THE FIX ---
+        res.json({
+          isPaid: order.isPaid,
+          isDelivered: order.isDelivered,
+          // Send the payment status, or 'Pending' if no result yet
+          paymentStatus: order.paymentResult?.status || "Pending",
+        });
+        // --- END OF FIX ---
+      } else {
+        res.status(401);
+        throw new Error("Not authorized to view this order");
+      }
+    } else {
+      res.status(404);
+      throw new Error("Order not found");
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+export {
+  createOrder,
+  getOrderById,
+  getMyOrders,
+  updateOrderToPaid,
+  getOrderPaymentStatus,
+};

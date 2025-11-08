@@ -1,7 +1,70 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "lucide-react"; // Import icons for navigation
+
+// Import your local images from the assets folder
+import imgJameson from "../../assets/jameson.png";
+import imgJackDaniels from "../../assets/jackdaniels.png";
+import imgBlackLabel from "../../assets/blacklabel.png";
+import imgRedLabel from "../../assets/redlabel.jpg";
+import imgChateau from "../../assets/chateau.png";
 
 export default function Hero() {
+  // Define a list of products for the carousel
+  const heroProducts = [
+    {
+      name: "Jack Daniels Whiskey",
+      volume: "750ml",
+      abv: "40% ABV",
+      price: "KSH 3,200",
+      image: imgJackDaniels,
+    },
+    {
+      name: "Jameson Irish Whiskey",
+      volume: "750ml",
+      abv: "40% ABV",
+      price: "KSH 2,800",
+      image: imgJameson,
+    },
+    {
+      name: "Johnnie Walker Black Label",
+      volume: "750ml",
+      abv: "40% ABV",
+      price: "KSH 4,500",
+      image: imgBlackLabel,
+    },
+    {
+      name: "Johnnie Walker Red Label",
+      volume: "750ml",
+      abv: "40% ABV",
+      price: "KSH 2,500",
+      image: imgRedLabel,
+    },
+    {
+      name: "Chateau Rouge Wine",
+      volume: "750ml",
+      abv: "12.5% ABV",
+      price: "KSH 1,500",
+      image: imgChateau,
+    },
+  ];
+
+  const [activeIndex, setActiveIndex] = useState(0); // State to manage current active product
+
+  const nextProduct = () => {
+    setActiveIndex((prevIndex) =>
+      prevIndex === heroProducts.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const prevProduct = () => {
+    setActiveIndex((prevIndex) =>
+      prevIndex === 0 ? heroProducts.length - 1 : prevIndex - 1
+    );
+  };
+
+  const currentProduct = heroProducts[activeIndex];
+
   return (
     <section
       aria-labelledby="hero-heading"
@@ -84,49 +147,73 @@ export default function Hero() {
             </ul>
           </div>
 
-          <div className="relative flex items-center justify-center">
-            <div className="relative w-[380px] max-w-full rounded-2xl bg-white/60 p-6 shadow-2xl backdrop-blur-md dark:bg-zinc-900/60">
-              <div className="relative flex h-64 items-end justify-center">
-                <img
-                  src="https://images.unsplash.com/photo-1616599323558-5e8f7d97f0c3?auto=format&fit=crop&w=400&q=80"
-                  alt="Jameson Irish Whiskey"
-                  className="absolute -left-10 w-28 transform-gpu -translate-y-6 rotate-[-10deg] transition-transform hover:scale-105 rounded-lg"
-                />
+          {/* Dynamic Image Display with Toggle */}
+          <div className="relative flex min-h-[400px] items-center justify-center lg:min-h-[500px]">
+            {/* Navigation buttons */}
+            <button
+              onClick={prevProduct}
+              aria-label="Previous product"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-white/70 dark:bg-zinc-800/70 backdrop-blur-sm shadow-md transition hover:scale-105"
+            >
+              <ChevronLeft className="h-6 w-6 text-zinc-700 dark:text-zinc-300" />
+            </button>
+            <button
+              onClick={nextProduct}
+              aria-label="Next product"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-white/70 dark:bg-zinc-800/70 backdrop-blur-sm shadow-md transition hover:scale-105"
+            >
+              <ChevronRight className="h-6 w-6 text-zinc-700 dark:text-zinc-300" />
+            </button>
 
+            {/* Product Card and Image */}
+            <div className="relative w-full h-full flex justify-center items-center">
+              <div className="relative z-10 p-6 rounded-2xl bg-white/60 shadow-2xl backdrop-blur-md dark:bg-zinc-900/60 flex flex-col justify-end min-h-[300px] lg:min-h-[400px] w-80 sm:w-96">
+                {/* --- THIS IS THE FIX --- */}
+                {/* Added -rotate-12 for the left tilt */}
                 <img
-                  src="https://images.unsplash.com/photo-1581388847562-2ce663d8d6c5?auto=format&fit=crop&w=400&q=80"
-                  alt="Smirnoff No. 21 Vodka"
-                  className="z-20 w-44 transform-gpu transition-transform hover:scale-105 rounded-lg"
+                  src={currentProduct.image}
+                  alt={currentProduct.name}
+                  className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 h-full object-contain max-h-[500px] w-auto transition-transform duration-300 ease-in-out hover:scale-105 z-0 -rotate-12"
                 />
+                {/* --- END OF FIX --- */}
 
-                <img
-                  src="https://images.unsplash.com/photo-1603046891743-86e7c5bba3b3?auto=format&fit=crop&w=400&q=80"
-                  alt="Captain Morgan Spiced Rum"
-                  className="absolute -right-8 w-28 transform-gpu translate-y-3 rotate-6 transition-transform hover:scale-105 rounded-lg"
-                />
-              </div>
-
-              <div className="mt-4 flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
-                    Smirnoff No. 21 Vodka
+                {/* Product details at the bottom of the card */}
+                <div className="mt-auto relative z-10 bg-white/80 dark:bg-zinc-900/80 p-3 rounded-xl backdrop-blur-sm">
+                  <p className="text-xl font-medium text-zinc-800 dark:text-zinc-100">
+                    {currentProduct.name}
                   </p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    750ml • 40% ABV
+                  <p className="text-base text-zinc-500 dark:text-zinc-400">
+                    {currentProduct.volume} • {currentProduct.abv}
                   </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-amber-600">
-                    KSH 1,850
-                  </p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Free delivery
-                  </p>
+                  <div className="flex justify-between items-center mt-2">
+                    <p className="text-lg font-semibold text-amber-600">
+                      {currentProduct.price}
+                    </p>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Free delivery
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="pointer-events-none absolute -bottom-6 h-6 w-80 rounded-full blur-3xl opacity-40 bg-gradient-to-r from-amber-200 to-transparent"></div>
+            {/* Pagination dots */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex gap-2">
+              {heroProducts.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveIndex(index)}
+                  className={`h-2 w-2 rounded-full transition-all duration-300 ${
+                    activeIndex === index
+                      ? "bg-amber-500 w-4"
+                      : "bg-zinc-400 dark:bg-zinc-600"
+                  }`}
+                  aria-label={`Go to product ${index + 1}`}
+                />
+              ))}
+            </div>
+
+            <div className="pointer-events-none absolute -bottom-6 h-6 w-full rounded-full blur-3xl opacity-40 bg-gradient-to-r from-amber-200 to-transparent"></div>
           </div>
         </div>
       </div>

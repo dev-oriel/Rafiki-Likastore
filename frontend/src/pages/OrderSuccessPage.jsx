@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import api from "../services/api";
+import { formatCurrency } from "../utils/formatCurrency"; // 1. Import KES formatter
+import { Loader } from "lucide-react";
 
-// We can re-use the summary component from Checkout
-import { CheckoutSummary } from "./CheckoutPage"; // This assumes you export it from CheckoutPage.jsx
+// Re-usable Order Summary (we'll assume it's exported from CheckoutPage)
+// If not, copy the component from CheckoutPage.jsx and paste it here
+import { CheckoutSummary } from "./CheckoutPage";
 
-// A simple loading/error state component
 const PageLoader = ({ text }) => (
-  <div className="flex justify-center items-center py-20">
+  <div className="flex flex-col gap-4 justify-center items-center py-20">
+    <Loader className="size-8 animate-spin text-amber-500" />
     <p className="text-zinc-500 dark:text-zinc-400">{text || "Loading..."}</p>
   </div>
 );
@@ -27,9 +30,15 @@ const OrderSuccessPage = () => {
       }
       try {
         setLoading(true);
-        // This is a protected route, so the cookie is sent
         const { data } = await api.get(`/orders/${orderId}`);
-        setOrder(data);
+
+        // 2. Check if the order is actually paid
+        if (!data.isPaid) {
+          // This could happen if the user navigates here directly
+          setError("This order has not been paid for.");
+        } else {
+          setOrder(data);
+        }
       } catch (err) {
         console.error("Failed to fetch order", err);
         setError("Could not find your order.");
@@ -45,7 +54,7 @@ const OrderSuccessPage = () => {
   }
 
   if (loading) {
-    return <PageLoader text="Loading order confirmation..." />;
+    return <PageLoader text="Confirming payment..." />;
   }
 
   if (error) {
@@ -67,13 +76,21 @@ const OrderSuccessPage = () => {
             check_circle
           </span>
           <h1 className="mt-4 text-zinc-900 dark:text-gray-100 text-4xl font-black tracking-tight">
-            Order Confirmed!
+            Payment Received!
           </h1>
           <p className="mt-2 text-lg text-zinc-600 dark:text-zinc-400">
-            Thank you for your purchase. An STK push has been sent to your
-            phone.
+            Thank you for your purchase. Your order is now being processed.
           </p>
-          <p className="text-sm text-zinc-500 dark:text-zinc-500">
+
+          {/* 3. Display the amount paid */}
+          <div className="mt-4">
+            <span className="text-zinc-500">Amount Paid</span>
+            <p className="text-3xl font-bold text-amber-600">
+              {formatCurrency(order.totalPrice)}
+            </p>
+          </div>
+
+          <p className="text-sm text-zinc-500 dark:text-zinc-500 mt-2">
             Order ID: #{order._id}
           </p>
         </div>
@@ -99,13 +116,5 @@ const OrderSuccessPage = () => {
     </main>
   );
 };
-
-// --- IMPORTANT: Update CheckoutPage.jsx ---
-// You must add 'export' to the CheckoutSummary component
-// In frontend/src/pages/CheckoutPage.jsx, change:
-// const CheckoutSummary = ({ ... }) => ( ... );
-// TO:
-// export const CheckoutSummary = ({ ... }) => ( ... );
-// --- End of instruction ---
 
 export default OrderSuccessPage;

@@ -1,11 +1,12 @@
 import express from "express";
 const router = express.Router();
 import {
-  getDashboardStats, // 1. Import
+  getDashboardStats,
   getAllUsers,
   deleteUser,
   getUserById,
   updateUser,
+  getAllProductsForAdmin,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -19,14 +20,18 @@ router.use(protect);
 router.use(admin);
 
 // --- Dashboard Route ---
-router.route("/stats").get(getDashboardStats); // 2. Add new route
+router.route("/stats").get(getDashboardStats);
 
 // --- User Routes ---
 router.route("/users").get(getAllUsers);
 router.route("/users/:id").delete(deleteUser).get(getUserById).put(updateUser);
 
 // --- Product Routes ---
-router.route("/products").post(createProduct);
+router
+  .route("/products")
+  .get(getAllProductsForAdmin) // 2. Add the GET route
+  .post(createProduct);
+
 router.route("/products/:id").put(updateProduct).delete(deleteProduct);
 
 // --- Order Routes ---

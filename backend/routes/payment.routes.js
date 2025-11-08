@@ -7,6 +7,8 @@ import {
 import { protect } from "../middleware/auth.middleware.js";
 
 router.post("/stkpush", protect, initiateSTKPush);
-router.post("/callback/:orderId", mpesaCallback); // Publicly accessible
+
+// 1. Add :orderId to the callback route
+router.post("/mpesa/callback/:orderId", mpesaCallback);
 
 export default router;

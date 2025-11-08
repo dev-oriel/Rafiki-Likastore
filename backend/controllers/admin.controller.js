@@ -53,7 +53,9 @@ const getAllUsers = async (req, res, next) => {
   }
 };
 
-// ... (deleteUser, getUserById, updateUser functions are unchanged) ...
+// @desc    Delete a user
+// @route   DELETE /api/admin/users/:id
+// @access  Private/Admin
 const deleteUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
@@ -72,6 +74,10 @@ const deleteUser = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Get user by ID
+// @route   GET /api/admin/users/:id
+// @access  Private/Admin
 const getUserById = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id).select("-password");
@@ -85,6 +91,10 @@ const getUserById = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Update user (e.g., make admin)
+// @route   PUT /api/admin/users/:id
+// @access  Private/Admin
 const updateUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
@@ -101,7 +111,7 @@ const updateUser = async (req, res, next) => {
         isAdmin: updatedUser.isAdmin,
       });
     } else {
-      res.status(404);
+      res.status(44);
       throw new Error("User not found");
     }
   } catch (error) {
@@ -110,7 +120,23 @@ const updateUser = async (req, res, next) => {
 };
 
 // --- Product Management ---
-// ... (createProduct, updateProduct, deleteProduct functions are unchanged) ...
+
+// @desc    Get all products (for admin list, no pagination)
+// @route   GET /api/admin/products
+// @access  Private/Admin
+const getAllProductsForAdmin = async (req, res, next) => {
+  try {
+    // Find all products, sort by newest
+    const products = await Product.find({}).sort({ createdAt: -1 });
+    res.json(products);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Create a product
+// @route   POST /api/admin/products
+// @access  Private/Admin
 const createProduct = async (req, res, next) => {
   try {
     const { name, price, description, image, category, countInStock } =
@@ -131,6 +157,10 @@ const createProduct = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Update a product
+// @route   PUT /api/admin/products/:id
+// @access  Private/Admin
 const updateProduct = async (req, res, next) => {
   try {
     const { name, price, description, image, category, countInStock } =
@@ -155,6 +185,10 @@ const updateProduct = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Delete a product
+// @route   DELETE /api/admin/products/:id
+// @access  Private/Admin
 const deleteProduct = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -170,30 +204,9 @@ const deleteProduct = async (req, res, next) => {
   }
 };
 
-// --- Order Management ---
-
-// @desc    Get all orders
-// @route   GET /api/admin/orders
+// @desc    Update order to delivered
+// @route   PUT /api/admin/orders/:id/deliver
 // @access  Private/Admin
-const getAllOrders = async (req, res, next) => {
-  try {
-    // Check for a limit query (e.g., ?limit=5)
-    const query = Order.find({})
-      .populate("user", "id name")
-      .sort({ createdAt: -1 });
-
-    if (req.query.limit) {
-      query.limit(parseInt(req.query.limit, 10));
-    }
-
-    const orders = await query;
-    res.json(orders);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// ... (updateOrderToDelivered is unchanged) ...
 const updateOrderToDelivered = async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -211,12 +224,40 @@ const updateOrderToDelivered = async (req, res, next) => {
   }
 };
 
+// @desc    Get all orders
+// @route   GET /api/admin/orders
+// @access  Private/Admin
+const getAllOrders = async (req, res, next) => {
+  try {
+    const filter = {};
+
+    // 1. Check for 'isPaid' query string
+    if (req.query.isPaid) {
+      filter.isPaid = true;
+    }
+
+    const query = Order.find(filter) // 2. Apply filter
+      .populate("user", "id name")
+      .sort({ createdAt: -1 });
+
+    if (req.query.limit) {
+      query.limit(parseInt(req.query.limit, 10));
+    }
+
+    const orders = await query;
+    res.json(orders);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   getDashboardStats,
   getAllUsers,
   deleteUser,
   getUserById,
   updateUser,
+  getAllProductsForAdmin,
   createProduct,
   updateProduct,
   deleteProduct,
