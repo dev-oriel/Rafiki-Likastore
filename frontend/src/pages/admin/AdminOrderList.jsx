@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import { Loader } from "lucide-react";
+import { formatCurrency } from "../../utils/formatCurrency"; // 1. Import KES formatter
 
 const AdminOrderList = () => {
   const [orders, setOrders] = useState([]);
@@ -11,7 +12,16 @@ const AdminOrderList = () => {
     try {
       setLoading(true);
       const { data } = await api.get("/admin/orders"); // Use admin route
-      setOrders(data);
+
+      // --- THIS IS THE FIX ---
+      // Filter out any order that has a 'Failed' status
+      const visibleOrders = data.filter(
+        (order) =>
+          !(order.paymentResult && order.paymentResult.status === "Failed")
+      );
+      // --- END OF FIX ---
+
+      setOrders(visibleOrders);
     } catch (err) {
       toast.error("Failed to fetch orders");
     } finally {
@@ -89,13 +99,14 @@ const AdminOrderList = () => {
                     {new Date(order.createdAt).toLocaleDateString()}
                   </td>
                   <td className="p-4 text-zinc-600 dark:text-zinc-400">
-                    ${order.totalPrice.toFixed(2)}
+                    {/* 2. Format currency to KES */}
+                    {formatCurrency(order.totalPrice)}
                   </td>
                   <td className="p-4 text-center">
                     {order.isPaid ? (
                       <span className="text-green-500">✔</span>
                     ) : (
-                      <span className="text-red-500">✖</span>
+                      <span className="text-yellow-500">✖</span>
                     )}
                   </td>
                   <td className="p-4 text-center">
@@ -103,7 +114,9 @@ const AdminOrderList = () => {
                       <span className="text-green-500">✔</span>
                     ) : (
                       <button
-                        className="bg-green-500 text-white text-xs px-2 py-1 rounded-md hover:bg-green-600"
+                        // 3. Only allow delivery if order is paid
+                        disabled={!order.isPaid}
+                        className="bg-green-500 text-white text-xs px-2 py-1 rounded-md hover:bg-green-600 disabled:bg-zinc-400 disabled:cursor-not-allowed"
                         onClick={() => deliverHandler(order._id)}
                       >
                         Mark Delivered
