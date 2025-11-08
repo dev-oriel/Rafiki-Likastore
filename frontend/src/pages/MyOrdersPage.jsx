@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import { formatCurrency } from "../utils/formatCurrency"; // Import the KES formatter
 
 // Helper functions
-const formatCurrency = (amount) => `$${Number(amount).toLocaleString()}`;
-
 const getStatus = (order) => {
   if (order.isDelivered)
     return { text: "Delivered", class: "bg-green-100 text-green-700" };
   if (order.isPaid)
     return { text: "Processing", class: "bg-blue-100 text-blue-700" };
+  // We filter out failed, so this is just for pending
   return { text: "Pending Payment", class: "bg-yellow-100 text-yellow-700" };
 };
 
@@ -106,8 +106,19 @@ const MyOrdersPage = () => {
       try {
         setLoading(true);
         const { data } = await api.get("/orders/myorders");
+
+        // --- THIS IS THE FIX ---
+        // Filter out any order that has a 'Failed' status
+        const visibleOrders = data.filter(
+          (order) =>
+            !(order.paymentResult && order.paymentResult.status === "Failed")
+        );
+        // --- END OF FIX ---
+
         setOrders(
-          data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          visibleOrders.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          )
         ); // Show newest first
         setError(null);
       } catch (err) {

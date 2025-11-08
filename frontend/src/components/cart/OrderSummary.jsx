@@ -1,15 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { formatCurrency } from "../../utils/formatCurrency"; // 1. Import KES formatter
 
 const OrderSummary = ({ subtotal }) => {
   const navigate = useNavigate();
 
-  // You can make this logic more complex later (e.g., free delivery over $50)
   const deliveryFee = subtotal > 0 ? 5.0 : 0.0;
   const total = subtotal + deliveryFee;
 
   const handleCheckout = () => {
-    // Navigate to a checkout page (you'll create this next)
     navigate("/checkout");
   };
 
@@ -23,19 +22,20 @@ const OrderSummary = ({ subtotal }) => {
           <div className="flex justify-between text-zinc-600 dark:text-gray-400">
             <span>Subtotal</span>
             <span className="font-medium text-zinc-900 dark:text-gray-300">
-              ${subtotal.toFixed(2)}
+              {formatCurrency(subtotal)} {/* 2. Use KES formatter */}
             </span>
           </div>
           <div className="flex justify-between text-zinc-600 dark:text-gray-400">
             <span>Delivery Fee</span>
             <span className="font-medium text-zinc-900 dark:text-gray-300">
-              ${deliveryFee.toFixed(2)}
+              {formatCurrency(deliveryFee)} {/* 3. Use KES formatter */}
             </span>
           </div>
           <div className="border-t border-dashed border-zinc-200 dark:border-zinc-700 my-4"></div>
           <div className="flex justify-between text-lg font-bold text-zinc-900 dark:text-gray-100">
             <span>Total</span>
-            <span className="text-amber-500">${total.toFixed(2)}</span>
+            <span className="text-amber-500">{formatCurrency(total)}</span>{" "}
+            {/* 4. Use KES formatter */}
           </div>
         </div>
         <button
