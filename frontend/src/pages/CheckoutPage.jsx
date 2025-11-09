@@ -115,7 +115,7 @@ const CheckoutPage = () => {
     }
   }, [primaryAddress]);
 
-  const deliveryFee = subtotal > 0 ? 5.0 : 0.0;
+  const deliveryFee = subtotal > 0 ? 1.0 : 0.0;
   const total = subtotal + deliveryFee;
 
   // --- Updated Polling Logic ---

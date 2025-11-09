@@ -22,7 +22,18 @@ const getDashboardStats = async (req, res, next) => {
     const totalUsers = await User.countDocuments({ isAdmin: false }); // Only count non-admin users
 
     // 3. Get recent orders (for dashboard widget)
-    const recentOrders = await Order.find({})
+    // --- THIS IS THE FIX ---
+    // We now use a simpler query: find all orders where
+    // 'paymentResult.status' is NOT equal to "Failed".
+    // This will correctly include:
+    //   - Orders with no paymentResult (Pending)
+    //   - Orders with paymentResult.status: "Successful"
+    // It will correctly exclude:
+    //   - Orders with paymentResult.status: "Failed"
+    const recentOrders = await Order.find({
+      "paymentResult.status": { $ne: "Failed" },
+    })
+      // --- END OF FIX ---
       .sort({ createdAt: -1 })
       .limit(5)
       .populate("user", "name");
@@ -111,7 +122,7 @@ const updateUser = async (req, res, next) => {
         isAdmin: updatedUser.isAdmin,
       });
     } else {
-      res.status(44);
+      res.status(404);
       throw new Error("User not found");
     }
   } catch (error) {
@@ -204,6 +215,34 @@ const deleteProduct = async (req, res, next) => {
   }
 };
 
+// --- Order Management ---
+
+// @desc    Get all orders
+// @route   GET /api/admin/orders
+// @access  Private/Admin
+const getAllOrders = async (req, res, next) => {
+  try {
+    const filter = {};
+
+    if (req.query.isPaid) {
+      filter.isPaid = true;
+    }
+
+    const query = Order.find(filter)
+      .populate("user", "id name")
+      .sort({ createdAt: -1 });
+
+    if (req.query.limit) {
+      query.limit(parseInt(req.query.limit, 10));
+    }
+
+    const orders = await query;
+    res.json(orders);
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Update order to delivered
 // @route   PUT /api/admin/orders/:id/deliver
 // @access  Private/Admin
@@ -219,33 +258,6 @@ const updateOrderToDelivered = async (req, res, next) => {
       res.status(404);
       throw new Error("Order not found");
     }
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Get all orders
-// @route   GET /api/admin/orders
-// @access  Private/Admin
-const getAllOrders = async (req, res, next) => {
-  try {
-    const filter = {};
-
-    // 1. Check for 'isPaid' query string
-    if (req.query.isPaid) {
-      filter.isPaid = true;
-    }
-
-    const query = Order.find(filter) // 2. Apply filter
-      .populate("user", "id name")
-      .sort({ createdAt: -1 });
-
-    if (req.query.limit) {
-      query.limit(parseInt(req.query.limit, 10));
-    }
-
-    const orders = await query;
-    res.json(orders);
   } catch (error) {
     next(error);
   }
