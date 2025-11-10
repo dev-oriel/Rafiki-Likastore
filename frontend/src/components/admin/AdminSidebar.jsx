@@ -8,6 +8,7 @@ import {
   DollarSign,
   ListOrdered,
   LogOut,
+  Star,
 } from "lucide-react";
 
 // Re-usable Logo
@@ -73,6 +74,10 @@ const AdminSidebar = () => {
             <NavLink to="/admin/transactions" className={navLinkClass}>
               <DollarSign className="h-4 w-4" />
               Transactions
+            </NavLink>
+            <NavLink to="/admin/reviews" className={navLinkClass}>
+              <Star className="h-4 w-4" />
+              Reviews
             </NavLink>
           </nav>
         </div>

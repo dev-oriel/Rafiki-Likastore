@@ -31,6 +31,7 @@ import AdminProductEdit from "./pages/admin/AdminProductEdit.jsx";
 import AdminOrderList from "./pages/admin/AdminOrderList.jsx";
 import AdminUserList from "./pages/admin/AdminUserList.jsx";
 import AdminTransactions from "./pages/admin/AdminTransactions.jsx";
+import AdminReviews from "./pages/admin/AdminReviews.jsx";
 
 const router = createBrowserRouter([
   {
@@ -81,6 +82,7 @@ const router = createBrowserRouter([
           { path: "orders", element: <AdminOrderList /> },
           { path: "users", element: <AdminUserList /> },
           { path: "transactions", element: <AdminTransactions /> },
+          { path: "reviews", element: <AdminReviews /> },
         ],
       },
     ],

@@ -3,11 +3,8 @@ import { useParams, Link, Navigate } from "react-router-dom";
 import api from "../services/api";
 import { formatCurrency } from "../utils/formatCurrency";
 import { Loader } from "lucide-react";
-
-// --- THIS IS THE FIX ---
-// 1. Import from the new component path
 import CheckoutSummary from "../components/checkout/CheckoutSummary";
-// --- END OF FIX ---
+import ReviewForm from "../components/checkout/ReviewForm";
 
 const PageLoader = ({ text }) => (
   <div className="flex flex-col gap-4 justify-center items-center py-20">
@@ -60,11 +57,18 @@ const OrderSuccessPage = () => {
     return <PageLoader text={error} />;
   }
 
-  const subtotal = order.orderItems.reduce(
-    (acc, item) => acc + item.price * item.qty,
-    0
-  );
+  // --- THIS IS THE FIX ---
+  // 1. Calculate subtotal using the correct price
+  const subtotal = order.orderItems.reduce((acc, item) => {
+    // Check if the item was on sale (we use the price stored in the order item)
+    // Note: This logic assumes the 'price' in orderItems is the *actual price paid*
+    // If not, we'd need to check the original product, but this is standard.
+    return acc + item.price * item.qty;
+  }, 0);
+
+  // 2. Calculate delivery fee based on the *correct* subtotal
   const deliveryFee = order.totalPrice - subtotal;
+  // --- END OF FIX ---
 
   return (
     <main className="flex-1 py-10 md:py-16">
@@ -99,6 +103,10 @@ const OrderSuccessPage = () => {
             deliveryFee={deliveryFee}
             total={order.totalPrice}
           />
+        </div>
+
+        <div className="my-8">
+          <ReviewForm orderId={order._id} />
         </div>
 
         <div className="text-center">

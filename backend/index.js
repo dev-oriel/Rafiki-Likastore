@@ -13,7 +13,8 @@ import userRoutes from "./routes/user.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import uploadRoutes from "./routes/upload.routes.js";
-import adminRoutes from "./routes/admin.routes.js"; // 1. Import admin routes
+import adminRoutes from "./routes/admin.routes.js";
+import reviewRoutes from "./routes/review.routes.js";
 
 dotenv.config();
 
@@ -48,7 +49,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/upload", uploadRoutes);
-app.use("/api/admin", adminRoutes); // 2. Use the new admin routes
+app.use("/api/admin", adminRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 // 5. Serve static files from the 'uploads' directory
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));

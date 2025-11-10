@@ -9,7 +9,10 @@ const CheckoutSummary = ({ items, subtotal, deliveryFee, total }) => (
     <div className="space-y-4">
       {items.map((item) => {
         // --- THIS IS THE FIX ---
-        // 1. Determine the correct price to use
+        // 1. Check for 'quantity' (from CartContext) OR 'qty' (from Order model)
+        const quantity = item.quantity || item.qty;
+
+        // 2. Determine the correct price to use
         const priceToUse =
           item.isOnSale && item.discountedPrice > 0
             ? item.discountedPrice
@@ -18,7 +21,7 @@ const CheckoutSummary = ({ items, subtotal, deliveryFee, total }) => (
 
         return (
           <div
-            key={item._id}
+            key={item._id || item.product} // Use _id (cart) or product (order)
             className="flex justify-between items-center text-sm"
           >
             <div className="flex items-center gap-3">
@@ -38,13 +41,13 @@ const CheckoutSummary = ({ items, subtotal, deliveryFee, total }) => (
                   {item.name}
                 </p>
                 <p className="text-zinc-500 dark:text-zinc-400">
-                  Qty: {item.quantity}
+                  Qty: {quantity} {/* 3. Use the unified quantity variable */}
                 </p>
               </div>
             </div>
-            {/* 2. Use the correct total */}
             <p className="font-medium text-zinc-900 dark:text-zinc-300">
-              {formatCurrency(priceToUse * item.quantity)}
+              {/* 4. Use the unified variables for calculation */}
+              {formatCurrency(priceToUse * quantity)}
             </p>
           </div>
         );
@@ -52,7 +55,6 @@ const CheckoutSummary = ({ items, subtotal, deliveryFee, total }) => (
       <div className="border-t border-dashed border-zinc-200 dark:border-zinc-700 my-4"></div>
       <div className="flex justify-between text-zinc-600 dark:text-gray-400">
         <span>Subtotal</span>
-        {/* The subtotal from context is now correct! */}
         <span className="font-medium text-zinc-900 dark:text-gray-300">
           {formatCurrency(subtotal)}
         </span>

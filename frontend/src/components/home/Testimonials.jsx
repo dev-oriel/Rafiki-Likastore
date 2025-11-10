@@ -1,31 +1,43 @@
-import React from "react";
-
-// You can replace these with real reviews later
-const reviews = [
-  {
-    quote:
-      "Rafiki Likastore is a lifesaver! I get my drinks delivered right to my hostel in 30 minutes. The prices are way better than the local shop.",
-    author: "Jane D., Kabarak Student",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Jane&backgroundColor=b6e3f4",
-  },
-  {
-    quote:
-      "The 'On Offer' section is my go-to. Always find great deals for the weekend. 10/10 service.",
-    author: "Mike K., S Block",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Mike&backgroundColor=c0aede",
-  },
-  {
-    quote:
-      "I use this app for all our society events. Easy to order in bulk and the student discounts are legit. Highly recommend.",
-    author: "Sarah W., KULCSA",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Sarah&backgroundColor=ffd5dc",
-  },
-];
+import React, { useState, useEffect } from "react";
+import api from "../../services/api";
+import { Loader } from "lucide-react";
 
 const Testimonials = () => {
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
+
+  useEffect(() => {
+    const fetchFeaturedReviews = async () => {
+      try {
+        setLoading(true);
+        const { data } = await api.get("/reviews/featured");
+        setReviews(data);
+      } catch (err) {
+        console.error("Failed to fetch reviews", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFeaturedReviews();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="py-16 sm:py-24 bg-white dark:bg-zinc-900">
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="flex justify-center">
+            <Loader className="animate-spin text-amber-500" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (reviews.length === 0) {
+    return null; // Don't show the section if no reviews are featured
+  }
+
   return (
     <section className="py-16 sm:py-24 bg-white dark:bg-zinc-900">
       <div className="mx-auto max-w-7xl px-4">
@@ -39,75 +51,50 @@ const Testimonials = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {reviews.map((review, index) => (
-            <div
-              key={index}
-              className="flex flex-col justify-between p-6 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800"
-            >
-              <blockquote className="text-zinc-700 dark:text-zinc-300 italic text-lg">
-                "{review.quote}"
-              </blockquote>
-              <footer className="mt-6 flex items-center gap-3">
-                <img
-                  className="h-12 w-12 rounded-full"
-                  src={review.avatar}
-                  alt={review.author}
-                />
-                <div>
-                  <p className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    {review.author}
-                  </p>
-                  <div className="flex gap-0.5 text-amber-500">
-                    <span
-                      className="material-symbols-outlined"
-                      style={{
-                        fontVariationSettings: "'FILL' 1",
-                        fontSize: "16px",
-                      }}
-                    >
-                      star
-                    </span>
-                    <span
-                      className="material-symbols-outlined"
-                      style={{
-                        fontVariationSettings: "'FILL' 1",
-                        fontSize: "16px",
-                      }}
-                    >
-                      star
-                    </span>
-                    <span
-                      className="material-symbols-outlined"
-                      style={{
-                        fontVariationSettings: "'FILL' 1",
-                        fontSize: "16px",
-                      }}
-                    >
-                      star
-                    </span>
-                    <span
-                      className="material-symbols-outlined"
-                      style={{
-                        fontVariationSettings: "'FILL' 1",
-                        fontSize: "16px",
-                      }}
-                    >
-                      star
-                    </span>
-                    <span
-                      className="material-symbols-outlined"
-                      style={{
-                        fontVariationSettings: "'FILL' 1",
-                        fontSize: "16px",
-                      }}
-                    >
-                      star
-                    </span>
+          {reviews.map((review) => {
+            const avatarSrc = review.user.avatar
+              ? `${API_BASE_URL}${review.user.avatar}`
+              : `https://api.dicebear.com/7.x/initials/svg?seed=${review.user.name}&backgroundColor=b6e3f4`;
+
+            return (
+              <div
+                key={review._id}
+                className="flex flex-col justify-between p-6 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800"
+              >
+                <blockquote className="text-zinc-700 dark:text-zinc-300 italic text-lg">
+                  "{review.comment}"
+                </blockquote>
+                <footer className="mt-6 flex items-center gap-3">
+                  <img
+                    className="h-12 w-12 rounded-full"
+                    src={avatarSrc}
+                    alt={review.user.name}
+                  />
+                  <div>
+                    <p className="font-semibold text-zinc-900 dark:text-zinc-100">
+                      {review.user.name}
+                    </p>
+                    <div className="flex gap-0.5 text-amber-500">
+                      {[...Array(5)].map((_, i) => (
+                        <span
+                          key={i}
+                          className="material-symbols-outlined"
+                          style={{
+                            fontVariationSettings: `'FILL' ${
+                              i < review.rating ? 1 : 0
+                            }`,
+                            fontSize: "16px",
+                          }}
+                        >
+                          star
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </footer>
-            </div>
-          ))}
+                </footer>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

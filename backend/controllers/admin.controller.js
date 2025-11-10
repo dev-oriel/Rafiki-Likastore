@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import Product from "../models/product.model.js";
 import Order from "../models/order.model.js";
+import Review from "../models/review.model.js";
 
 // --- Stats Function ---
 
@@ -9,14 +10,19 @@ import Order from "../models/order.model.js";
 // @access  Private/Admin
 const getDashboardStats = async (req, res, next) => {
   try {
+    // 1. Get total revenue from paid orders
     const paidOrders = await Order.find({ isPaid: true });
     const totalRevenue = paidOrders.reduce(
       (acc, order) => acc + order.totalPrice,
       0
     );
+
+    // 2. Get counts
     const totalOrders = await Order.countDocuments();
     const totalProducts = await Product.countDocuments();
-    const totalUsers = await User.countDocuments({ isAdmin: false });
+    const totalUsers = await User.countDocuments({ isAdmin: false }); // Only count non-admin users
+
+    // 3. Get recent orders (for dashboard widget)
     const recentOrders = await Order.find({
       "paymentResult.status": { $ne: "Failed" },
     })
@@ -123,6 +129,7 @@ const updateUser = async (req, res, next) => {
 // @access  Private/Admin
 const getAllProductsForAdmin = async (req, res, next) => {
   try {
+    // Find all products, sort by newest
     const products = await Product.find({}).sort({ createdAt: -1 });
     res.json(products);
   } catch (error) {
@@ -144,7 +151,7 @@ const createProduct = async (req, res, next) => {
       countInStock,
       isOnSale,
       discountedPrice,
-      isPopular, // <-- Added missing field
+      isPopular,
     } = req.body;
 
     const product = new Product({
@@ -157,7 +164,7 @@ const createProduct = async (req, res, next) => {
       user: req.user._id,
       isOnSale: Boolean(isOnSale),
       discountedPrice: Number(discountedPrice) || 0,
-      isPopular: Boolean(isPopular), // <-- Added missing field
+      isPopular: Boolean(isPopular),
     });
 
     const createdProduct = await product.save();
@@ -181,7 +188,7 @@ const updateProduct = async (req, res, next) => {
       countInStock,
       isOnSale,
       discountedPrice,
-      isPopular, // <-- Added missing field
+      isPopular,
     } = req.body;
 
     const product = await Product.findById(req.params.id);
@@ -195,7 +202,7 @@ const updateProduct = async (req, res, next) => {
       product.countInStock = countInStock;
       product.isOnSale = Boolean(isOnSale);
       product.discountedPrice = Number(discountedPrice) || 0;
-      product.isPopular = Boolean(isPopular); // <-- Added missing field
+      product.isPopular = Boolean(isPopular);
 
       const updatedProduct = await product.save();
       res.json(updatedProduct);
@@ -218,7 +225,7 @@ const deleteProduct = async (req, res, next) => {
       await product.deleteOne();
       res.json({ message: "Product removed" });
     } else {
-      res.status(404); // Changed from 44
+      res.status(404);
       throw new Error("Product not found");
     }
   } catch (error) {
@@ -274,6 +281,48 @@ const updateOrderToDelivered = async (req, res, next) => {
   }
 };
 
+// --- NEW SECTION: Review Management ---
+
+// @desc    Get all reviews
+// @route   GET /api/admin/reviews
+// @access  Private/Admin
+const getAllReviews = async (req, res, next) => {
+  try {
+    const reviews = await Review.find({})
+      .populate("user", "name email")
+      // --- THIS IS THE FIX ---
+      // .populate('order', '_id') // This line was removed
+      // --- END OF FIX ---
+      .sort({ createdAt: -1 });
+    res.json(reviews);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update a review (e.g., feature it)
+// @route   PUT /api/admin/reviews/:id
+// @access  Private/Admin
+const updateReview = async (req, res, next) => {
+  try {
+    const { isFeatured } = req.body;
+    const review = await Review.findById(req.params.id);
+
+    if (review) {
+      review.isFeatured = Boolean(isFeatured);
+      const updatedReview = await review.save();
+      res.json(updatedReview);
+    } else {
+      res.status(404);
+      throw new Error("Review not found");
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// --- END NEW SECTION ---
+
 export {
   getDashboardStats,
   getAllUsers,
@@ -286,4 +335,6 @@ export {
   deleteProduct,
   getAllOrders,
   updateOrderToDelivered,
+  getAllReviews,
+  updateReview,
 };
