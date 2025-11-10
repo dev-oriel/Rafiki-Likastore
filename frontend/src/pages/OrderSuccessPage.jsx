@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import api from "../services/api";
-import { formatCurrency } from "../utils/formatCurrency"; // 1. Import KES formatter
+import { formatCurrency } from "../utils/formatCurrency";
 import { Loader } from "lucide-react";
 
-// Re-usable Order Summary (we'll assume it's exported from CheckoutPage)
-// If not, copy the component from CheckoutPage.jsx and paste it here
-import { CheckoutSummary } from "./CheckoutPage";
+// --- THIS IS THE FIX ---
+// 1. Import from the new component path
+import CheckoutSummary from "../components/checkout/CheckoutSummary";
+// --- END OF FIX ---
 
 const PageLoader = ({ text }) => (
   <div className="flex flex-col gap-4 justify-center items-center py-20">
@@ -32,9 +33,7 @@ const OrderSuccessPage = () => {
         setLoading(true);
         const { data } = await api.get(`/orders/${orderId}`);
 
-        // 2. Check if the order is actually paid
         if (!data.isPaid) {
-          // This could happen if the user navigates here directly
           setError("This order has not been paid for.");
         } else {
           setOrder(data);
@@ -61,7 +60,6 @@ const OrderSuccessPage = () => {
     return <PageLoader text={error} />;
   }
 
-  // Calculate totals from the fetched order data
   const subtotal = order.orderItems.reduce(
     (acc, item) => acc + item.price * item.qty,
     0
@@ -82,7 +80,6 @@ const OrderSuccessPage = () => {
             Thank you for your purchase. Your order is now being processed.
           </p>
 
-          {/* 3. Display the amount paid */}
           <div className="mt-4">
             <span className="text-zinc-500">Amount Paid</span>
             <p className="text-3xl font-bold text-amber-600">
