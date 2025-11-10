@@ -11,8 +11,11 @@ const StudentFavorites = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const { data } = await api.get("/products"); // backend returns { products: [...] }
-        setFavorites((data.products || []).slice(4, 8)); // keep original selection window
+        // --- THIS IS THE FIX ---
+        // Call the new 'favorites' endpoint
+        const { data } = await api.get("/products/favorites");
+        setFavorites(data); // It returns a simple array, not an object
+        // --- END OF FIX ---
       } catch (err) {
         console.error("Failed to fetch favorites", err);
       } finally {
@@ -22,8 +25,13 @@ const StudentFavorites = () => {
     fetchProducts();
   }, []);
 
+  // Don't render the section if no products were found
+  if (favorites.length === 0 && !loading) {
+    return null;
+  }
+
   return (
-    <section className="pt-16 pb-4 border-2 sm:py-24">
+    <section className="py-16 sm:py-24">
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
           <div>
@@ -68,8 +76,6 @@ const StudentFavorites = () => {
                 <ProductCard key={product._id} product={product} />
               ))}
         </div>
-
-        {/* --- DUPLICATE LINK REMOVED FROM HERE --- */}
       </div>
     </section>
   );

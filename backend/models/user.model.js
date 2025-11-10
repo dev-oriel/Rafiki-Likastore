@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
-// --- New Schemas for Profile ---
+// (addressSchema and paymentMethodSchema are unchanged)
 const addressSchema = new mongoose.Schema({
   label: { type: String, required: true },
   details: { type: String, required: true },
@@ -13,7 +13,6 @@ const paymentMethodSchema = new mongoose.Schema({
   number: { type: String, required: true },
   primary: { type: Boolean, default: false },
 });
-// --- End New Schemas ---
 
 const userSchema = new mongoose.Schema(
   {
@@ -49,18 +48,25 @@ const userSchema = new mongoose.Schema(
     },
     addresses: [addressSchema],
     paymentMethods: [paymentMethodSchema],
+
+    // --- NEW FIELD ---
+    favorites: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product", // Links to the Product model
+      },
+    ],
+    // --- END NEW FIELD ---
   },
   {
     timestamps: true,
   }
 );
 
-// Method to compare entered password with hashed password
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Middleware to hash password before saving
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     next();

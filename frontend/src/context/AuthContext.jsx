@@ -6,43 +6,34 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // 1. Add loading state
+  const [loading, setLoading] = useState(true);
 
-  // 2. This function checks if the cookie is valid on app load
   const checkUserStatus = async () => {
     try {
-      // api.js now sends the cookie
       const { data } = await api.get("/users/profile");
-      saveUser(data); // Save valid user to state
+      saveUser(data);
     } catch (error) {
-      // No valid cookie, so we are logged out
       localStorage.removeItem("rafiki_user");
       setUser(null);
     } finally {
-      // We are done checking
       setLoading(false);
     }
   };
 
-  // 3. Run the check only once when the app first loads
   useEffect(() => {
     checkUserStatus();
   }, []);
 
-  // Helper to set user in state and local storage
   const saveUser = (userData) => {
     localStorage.setItem("rafiki_user", JSON.stringify(userData));
     setUser(userData);
   };
 
-  // This is the function your ProfileSidebar will call
   const refreshUser = async () => {
-    // This is the same as checkUserStatus, but we don't set loading
     try {
       const { data } = await api.get("/users/profile");
       saveUser(data);
     } catch (error) {
-      // If this fails, the cookie is bad, so log them out
       logout();
     }
   };
@@ -50,12 +41,12 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const { data } = await api.post("/users/login", { email, password });
-      saveUser(data); // Backend sets cookie, we save user data
+      saveUser(data);
       toast.success("Logged in successfully!");
-      return true;
+      return data; // Return user data for redirect
     } catch (error) {
       toast.error(error.response?.data?.message || "Login failed");
-      return false;
+      return null; // Return null on failure
     }
   };
 
@@ -68,36 +59,94 @@ export const AuthProvider = ({ children }) => {
         phone,
         dob,
       });
-      saveUser(data); // Backend sets cookie, we save user data
+      saveUser(data);
       toast.success("Registered successfully!");
-      return true;
+      return data; // Return user data for redirect
     } catch (error) {
       toast.error(error.response?.data?.message || "Registration failed");
-      return false;
+      return null;
     }
   };
 
   const logout = async () => {
     try {
-      await api.post("/users/logout"); // Tell backend to clear cookie
+      await api.post("/users/logout");
     } catch (error) {
       console.error("Logout failed", error);
     } finally {
-      // Always clear frontend state
       localStorage.removeItem("rafiki_user");
       setUser(null);
       toast.success("Logged out");
     }
   };
 
+  // --- NEW FUNCTION ---
+  const toggleFavorite = async (productId) => {
+    if (!user) {
+      toast.error("Please log in to add favorites");
+      return;
+    }
+
+    const isCurrentlyFavorited = user.favorites.some(
+      (fav) => (fav._id || fav) === productId
+    );
+    let updatedFavorites;
+
+    // Optimistic UI update
+    if (isCurrentlyFavorited) {
+      updatedFavorites = user.favorites.filter(
+        (fav) => (fav._id || fav) !== productId
+      );
+    } else {
+      updatedFavorites = [...user.favorites, { _id: productId }]; // Add a placeholder
+    }
+
+    setUser((currentUser) => ({
+      ...currentUser,
+      favorites: updatedFavorites,
+    }));
+
+    try {
+      // Send request to backend
+      const { data } = await api.put("/users/profile/favorites", { productId });
+      // Sync state with the populated list from the backend
+      saveUser({ ...user, favorites: data });
+      toast.success(
+        isCurrentlyFavorited ? "Removed from favorites" : "Added to favorites!"
+      );
+    } catch (err) {
+      // Revert on error
+      toast.error("Failed to update favorites.");
+      setUser((currentUser) => ({
+        ...currentUser,
+        favorites: user.favorites, // Revert to original
+      }));
+    }
+  };
+  // --- END NEW FUNCTION ---
+
   return (
     <AuthContext.Provider
-      value={{ user, setUser, login, register, logout, refreshUser, loading }}
+      value={{
+        user,
+        setUser,
+        login,
+        register,
+        logout,
+        refreshUser,
+        loading,
+        toggleFavorite, // <-- Export new function
+      }}
     >
-      {/* 4. Pass 'loading' to all children */}
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

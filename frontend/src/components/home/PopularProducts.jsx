@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import ProductCard from "./ProductCard";
 import api from "../../services/api";
 import { Link } from "react-router-dom";
+import { Loader } from "lucide-react";
 
 const PopularProducts = () => {
   const [products, setProducts] = useState([]);
@@ -11,9 +12,11 @@ const PopularProducts = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const { data } = await api.get("/products"); // backend returns { products: [...] }
-        // Get another slice of products (e.g., 8-12)
-        setProducts((data.products || []).slice(8, 12));
+        // --- THIS IS THE FIX ---
+        // Call the new '/api/products/popular' route
+        const { data } = await api.get("/products/popular");
+        setProducts(data); // It returns a simple array
+        // --- END OF FIX ---
       } catch (err) {
         console.error("Failed to fetch popular products", err);
       } finally {
@@ -23,13 +26,12 @@ const PopularProducts = () => {
     fetchProducts();
   }, []);
 
-  // Don't render the section if no products were found
   if (products.length === 0 && !loading) {
     return null;
   }
 
   return (
-    <section className="pt-16 pb-4 border-2 border-green-500 sm:py-24 bg-zinc-50 dark:bg-zinc-900/50">
+    <section className="py-16 sm:py-24 bg-zinc-50 dark:bg-zinc-900/50">
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
           <div>

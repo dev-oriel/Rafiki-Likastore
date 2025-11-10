@@ -17,8 +17,12 @@ const AdminProductEdit = () => {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  // --- ADD MISSING STATE ---
   const [isOnSale, setIsOnSale] = useState(false);
   const [discountedPrice, setDiscountedPrice] = useState(0);
+  const [isPopular, setIsPopular] = useState(false); // 1. Add state
+  // --- END MISSING STATE ---
 
   const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
@@ -34,8 +38,10 @@ const AdminProductEdit = () => {
           setCategory(data.category);
           setCountInStock(data.countInStock);
           setDescription(data.description);
+          // --- POPULATE MISSING STATE ---
           setIsOnSale(data.isOnSale);
           setDiscountedPrice(data.discountedPrice || 0);
+          setIsPopular(data.isPopular); // 2. Populate state
         } catch (err) {
           toast.error("Product not found");
           navigate("/admin/products");
@@ -79,8 +85,10 @@ const AdminProductEdit = () => {
       category,
       countInStock,
       description,
+      // --- ADD MISSING FIELDS TO PAYLOAD ---
       isOnSale,
       discountedPrice: discountedPrice || 0,
+      isPopular, // 3. Add to payload
     };
 
     try {
@@ -164,7 +172,7 @@ const AdminProductEdit = () => {
           </div>
         </div>
 
-        {/* --- THIS IS THE FIX --- */}
+        {/* --- ADD MISSING OFFER FIELDS --- */}
         <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg space-y-4">
           <div className="flex items-center gap-3">
             <input
@@ -174,7 +182,6 @@ const AdminProductEdit = () => {
               onChange={(e) => setIsOnSale(e.target.checked)}
               className="h-5 w-5 rounded text-amber-500 focus:ring-amber-500"
             />
-            {/* 1. Updated label text */}
             <label
               htmlFor="isOnSale"
               className="font-medium text-zinc-900 dark:text-amber-100"
@@ -198,7 +205,27 @@ const AdminProductEdit = () => {
             </div>
           )}
         </div>
-        {/* --- END OF FIX --- */}
+        {/* --- END MISSING OFFER FIELDS --- */}
+
+        {/* --- NEW POPULAR FIELD --- */}
+        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="isPopular"
+              checked={isPopular}
+              onChange={(e) => setIsPopular(e.target.checked)}
+              className="h-5 w-5 rounded text-blue-500 focus:ring-blue-500"
+            />
+            <label
+              htmlFor="isPopular"
+              className="font-medium text-zinc-900 dark:text-blue-100"
+            >
+              Mark as a "Popular" item
+            </label>
+          </div>
+        </div>
+        {/* --- END NEW POPULAR FIELD --- */}
 
         <div>
           <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">

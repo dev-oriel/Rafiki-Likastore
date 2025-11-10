@@ -8,6 +8,7 @@ import {
   updateUserProfile,
   updateUserAddresses,
   updateUserPaymentMethods,
+  toggleFavorite, // 1. Import toggleFavorite
 } from "../controllers/user.controller.js";
 import { protect } from "../middleware/auth.middleware.js"; // No admin needed here
 
@@ -22,5 +23,8 @@ router
 
 router.route("/profile/addresses").put(protect, updateUserAddresses);
 router.route("/profile/payment-methods").put(protect, updateUserPaymentMethods);
+
+// --- NEW ROUTE ---
+router.route("/profile/favorites").put(protect, toggleFavorite); // 2. Add the favorites route
 
 export default router;

@@ -1,4 +1,5 @@
 import Product from "../models/product.model.js";
+import User from "../models/user.model.js"; // 1. Import User model
 
 // @desc    Fetch all products (with filtering, search, pagination)
 // @route   GET /api/products
@@ -112,4 +113,64 @@ const getOnSaleProducts = async (req, res, next) => {
   }
 };
 
-export { getAllProducts, getProductById, getProductMeta, getOnSaleProducts };
+// @desc    Get all products marked as popular
+// @route   GET /api/products/popular
+// @access  Public
+const getPopularProducts = async (req, res, next) => {
+  try {
+    const products = await Product.find({ isPopular: true }).limit(4);
+    res.json(products);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// --- NEW FUNCTION ---
+// @desc    Get 4 most favorited products
+// @route   GET /api/products/favorites
+// @access  Public
+const getStudentFavorites = async (req, res, next) => {
+  try {
+    const favoriteProducts = await User.aggregate([
+      // 1. Deconstruct the favorites array from all users
+      { $unwind: "$favorites" },
+      // 2. Group by the product ID and count how many times it appears
+      {
+        $group: {
+          _id: "$favorites",
+          count: { $sum: 1 },
+        },
+      },
+      // 3. Sort by the highest count
+      { $sort: { count: -1 } },
+      // 4. Get the top 4
+      { $limit: 4 },
+      // 5. Look up the full product details from the 'products' collection
+      {
+        $lookup: {
+          from: "products",
+          localField: "_id",
+          foreignField: "_id",
+          as: "productDetails",
+        },
+      },
+      // 6. Unwind the productDetails array (since $lookup returns an array)
+      { $unwind: "$productDetails" },
+      // 7. Replace the root to return the product object itself
+      { $replaceRoot: { newRoot: "$productDetails" } },
+    ]);
+    res.json(favoriteProducts);
+  } catch (error) {
+    next(error);
+  }
+};
+// --- END NEW FUNCTION ---
+
+export {
+  getAllProducts,
+  getProductById,
+  getProductMeta,
+  getOnSaleProducts,
+  getPopularProducts,
+  getStudentFavorites, // 3. Export the new function
+};

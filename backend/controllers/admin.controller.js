@@ -9,19 +9,14 @@ import Order from "../models/order.model.js";
 // @access  Private/Admin
 const getDashboardStats = async (req, res, next) => {
   try {
-    // 1. Get total revenue from paid orders
     const paidOrders = await Order.find({ isPaid: true });
     const totalRevenue = paidOrders.reduce(
       (acc, order) => acc + order.totalPrice,
       0
     );
-
-    // 2. Get counts
     const totalOrders = await Order.countDocuments();
     const totalProducts = await Product.countDocuments();
-    const totalUsers = await User.countDocuments({ isAdmin: false }); // Only count non-admin users
-
-    // 3. Get recent orders (for dashboard widget)
+    const totalUsers = await User.countDocuments({ isAdmin: false });
     const recentOrders = await Order.find({
       "paymentResult.status": { $ne: "Failed" },
     })
@@ -128,7 +123,6 @@ const updateUser = async (req, res, next) => {
 // @access  Private/Admin
 const getAllProductsForAdmin = async (req, res, next) => {
   try {
-    // Find all products, sort by newest
     const products = await Product.find({}).sort({ createdAt: -1 });
     res.json(products);
   } catch (error) {
@@ -141,8 +135,6 @@ const getAllProductsForAdmin = async (req, res, next) => {
 // @access  Private/Admin
 const createProduct = async (req, res, next) => {
   try {
-    // --- THIS IS THE FIX ---
-    // Added isOnSale and discountedPrice
     const {
       name,
       price,
@@ -152,6 +144,7 @@ const createProduct = async (req, res, next) => {
       countInStock,
       isOnSale,
       discountedPrice,
+      isPopular, // <-- Added missing field
     } = req.body;
 
     const product = new Product({
@@ -162,10 +155,10 @@ const createProduct = async (req, res, next) => {
       category,
       countInStock,
       user: req.user._id,
-      isOnSale: Boolean(isOnSale), // Ensure it's a boolean
-      discountedPrice: Number(discountedPrice) || 0, // Ensure it's a number
+      isOnSale: Boolean(isOnSale),
+      discountedPrice: Number(discountedPrice) || 0,
+      isPopular: Boolean(isPopular), // <-- Added missing field
     });
-    // --- END OF FIX ---
 
     const createdProduct = await product.save();
     res.status(201).json(createdProduct);
@@ -179,8 +172,6 @@ const createProduct = async (req, res, next) => {
 // @access  Private/Admin
 const updateProduct = async (req, res, next) => {
   try {
-    // --- THIS IS THE FIX ---
-    // Added isOnSale and discountedPrice
     const {
       name,
       price,
@@ -190,8 +181,8 @@ const updateProduct = async (req, res, next) => {
       countInStock,
       isOnSale,
       discountedPrice,
+      isPopular, // <-- Added missing field
     } = req.body;
-    // --- END OF FIX ---
 
     const product = await Product.findById(req.params.id);
 
@@ -202,11 +193,9 @@ const updateProduct = async (req, res, next) => {
       product.image = image;
       product.category = category;
       product.countInStock = countInStock;
-
-      // --- THIS IS THE FIX ---
       product.isOnSale = Boolean(isOnSale);
       product.discountedPrice = Number(discountedPrice) || 0;
-      // --- END OF FIX ---
+      product.isPopular = Boolean(isPopular); // <-- Added missing field
 
       const updatedProduct = await product.save();
       res.json(updatedProduct);
@@ -229,7 +218,7 @@ const deleteProduct = async (req, res, next) => {
       await product.deleteOne();
       res.json({ message: "Product removed" });
     } else {
-      res.status(44);
+      res.status(404); // Changed from 44
       throw new Error("Product not found");
     }
   } catch (error) {

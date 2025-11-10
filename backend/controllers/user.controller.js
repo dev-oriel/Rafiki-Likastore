@@ -2,17 +2,18 @@ import User from "../models/user.model.js";
 import generateToken from "../utils/generateToken.js";
 
 // Helper function to set the cookie
-const sendTokenResponse = (res, user, statusCode) => {
+const sendTokenResponse = async (res, user, statusCode) => {
   const token = generateToken(user._id);
 
   const options = {
-    expires: new Date(
-      Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 days
-    ),
+    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     httpOnly: true, // Prevents client-side JS from accessing it
     secure: process.env.NODE_ENV !== "development", // Only send over HTTPS in production
     sameSite: "strict", // Mitigates CSRF attacks
   };
+
+  // Populate favorites before sending
+  await user.populate("favorites");
 
   res
     .status(statusCode)
@@ -27,6 +28,7 @@ const sendTokenResponse = (res, user, statusCode) => {
       avatar: user.avatar,
       addresses: user.addresses,
       paymentMethods: user.paymentMethods,
+      favorites: user.favorites, // Send populated favorites
     });
 };
 
@@ -35,32 +37,25 @@ const sendTokenResponse = (res, user, statusCode) => {
 // @access  Public
 const registerUser = async (req, res, next) => {
   try {
-    // 1. Get all fields from the body
     const { name, email, password, phone, dob } = req.body;
-
     const userExists = await User.findOne({ email });
     if (userExists) {
       res.status(400);
       throw new Error("User already exists");
     }
-
     const phoneExists = await User.findOne({ phone });
     if (phoneExists) {
       res.status(400);
       throw new Error("Phone number already in use");
     }
-
-    // 2. Create user with all fields
     const user = await User.create({
       name,
       email,
       password,
       phone,
-      dob, // Save the date of birth
+      dob,
     });
-
     if (user) {
-      // 3. Send response (which logs them in and sets cookie)
       sendTokenResponse(res, user, 201);
     } else {
       res.status(400);
@@ -77,12 +72,8 @@ const registerUser = async (req, res, next) => {
 const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-
-    // Find user and include all profile fields
     const user = await User.findOne({ email });
-
     if (user && (await user.matchPassword(password))) {
-      // 1. Send response (sets cookie and sends user data)
       sendTokenResponse(res, user, 200);
     } else {
       res.status(401);
@@ -99,7 +90,7 @@ const loginUser = async (req, res, next) => {
 const logoutUser = (req, res, next) => {
   res.cookie("jwt", "", {
     httpOnly: true,
-    expires: new Date(0), // Expire the cookie immediately
+    expires: new Date(0),
   });
   res.status(200).json({ message: "Logged out successfully" });
 };
@@ -109,9 +100,8 @@ const logoutUser = (req, res, next) => {
 // @access  Private
 const getUserProfile = async (req, res, next) => {
   try {
-    // req.user is set by 'protect' middleware
-    // We re-fetch by ID to get the most current data
-    const user = await User.findById(req.user._id);
+    // Re-fetch user and populate favorites
+    const user = await User.findById(req.user._id).populate("favorites");
 
     if (user) {
       res.json({
@@ -123,6 +113,7 @@ const getUserProfile = async (req, res, next) => {
         avatar: user.avatar,
         addresses: user.addresses,
         paymentMethods: user.paymentMethods,
+        favorites: user.favorites, // Send populated favorites
       });
     } else {
       res.status(404);
@@ -147,10 +138,9 @@ const updateUserProfile = async (req, res, next) => {
       if (req.body.avatar) {
         user.avatar = req.body.avatar;
       }
-
       const updatedUser = await user.save();
+      await updatedUser.populate("favorites"); // Re-populate
 
-      // Send back updated data
       res.json({
         _id: updatedUser._id,
         name: updatedUser.name,
@@ -160,6 +150,7 @@ const updateUserProfile = async (req, res, next) => {
         avatar: updatedUser.avatar,
         addresses: updatedUser.addresses,
         paymentMethods: updatedUser.paymentMethods,
+        favorites: updatedUser.favorites,
       });
     } else {
       res.status(404);
@@ -179,7 +170,7 @@ const updateUserAddresses = async (req, res, next) => {
     const user = await User.findById(req.user._id);
 
     if (user) {
-      user.addresses = addresses; // Completely replace the array
+      user.addresses = addresses;
       await user.save();
       res.status(200).json({ message: "Addresses updated" });
     } else {
@@ -200,7 +191,7 @@ const updateUserPaymentMethods = async (req, res, next) => {
     const user = await User.findById(req.user._id);
 
     if (user) {
-      user.paymentMethods = paymentMethods; // Completely replace
+      user.paymentMethods = paymentMethods;
       await user.save();
       res.status(200).json({ message: "Payment methods updated" });
     } else {
@@ -212,9 +203,40 @@ const updateUserPaymentMethods = async (req, res, next) => {
   }
 };
 
-// @desc    Get all users (Admin only)
-// @route   GET /api/users
-// @access  Private/Admin
+// @desc    Add/Remove a favorite product
+// @route   PUT /api/users/profile/favorites
+// @access  Private
+const toggleFavorite = async (req, res, next) => {
+  try {
+    const { productId } = req.body;
+    if (!productId) {
+      res.status(400);
+      throw new Error("Product ID is required");
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found");
+    }
+
+    const isFavorited = user.favorites.includes(productId);
+
+    if (isFavorited) {
+      user.favorites.pull(productId);
+    } else {
+      user.favorites.push(productId);
+    }
+
+    await user.save();
+    await user.populate("favorites"); // Re-populate to send back full objects
+
+    res.json(user.favorites); // Send back the updated list
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getUSers = async (req, res) => {
   try {
     const users = await User.find();
@@ -236,4 +258,5 @@ export {
   updateUserProfile,
   updateUserAddresses,
   updateUserPaymentMethods,
+  toggleFavorite, // <-- Added missing function
 };

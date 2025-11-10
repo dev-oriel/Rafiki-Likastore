@@ -28,11 +28,15 @@ const productSchema = new mongoose.Schema(
       required: true,
       default: 0,
     },
-
     discountedPrice: {
       type: Number,
     },
     isOnSale: {
+      type: Boolean,
+      default: false,
+    },
+
+    isPopular: {
       type: Boolean,
       default: false,
     },

@@ -1,22 +1,37 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext"; // 1. Import useAuth
 import toast from "react-hot-toast";
 import { formatCurrency } from "../../utils/formatCurrency";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
   ? import.meta.env.VITE_API_URL.replace("/api", "")
   : "";
-const PLACEHOLDER = "/placeholder-400x300.png"; // add to /public
+const PLACEHOLDER = "/placeholder-400x300.png";
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
+  const { user, toggleFavorite } = useAuth(); // 2. Get user and toggle function
+
+  // 3. Check if this product is in the user's favorites
+  // We check against simple IDs first, then populated objects
+  const isFavorited = user?.favorites?.some(
+    (fav) => (fav._id || fav) === product._id
+  );
 
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart(product);
     toast.success(`${product.name} added to cart!`);
+  };
+
+  // 4. New handler for toggling favorite
+  const handleToggleFavorite = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFavorite(product._id);
   };
 
   const rawImage =
@@ -28,20 +43,6 @@ const ProductCard = ({ product }) => {
     rawImage && rawImage.startsWith("http")
       ? rawImage
       : `${API_BASE_URL}${rawImage}`;
-
-  // --- THIS IS THE FIX ---
-  // 1. Calculate discount percentage
-  let discountPercent = 0;
-  if (
-    product.isOnSale &&
-    product.discountedPrice > 0 &&
-    product.price > product.discountedPrice
-  ) {
-    discountPercent = Math.round(
-      ((product.price - product.discountedPrice) / product.price) * 100
-    );
-  }
-  // --- END OF FIX ---
 
   return (
     <article className="group relative flex flex-col rounded-2xl bg-white dark:bg-zinc-900/40 shadow-sm hover:shadow-lg transition-transform transform hover:-translate-y-1 p-3">
@@ -58,11 +59,29 @@ const ProductCard = ({ product }) => {
             }}
           />
 
-          {/* 2. Update badge to show percentage */}
           {product.isOnSale && (
             <span className="absolute left-3 top-3 rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold text-white">
-              {discountPercent > 0 ? `${discountPercent}% OFF` : "On Offer"}
+              On Offer
             </span>
+          )}
+
+          {/* 5. Add Favorite button */}
+          {user && (
+            <button
+              onClick={handleToggleFavorite}
+              aria-label="Toggle favorite"
+              className="absolute right-12 top-3 z-10 inline-flex items-center justify-center rounded-full bg-white/80 dark:bg-zinc-900/80 p-2 opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-amber-400 transition-opacity"
+              title="Toggle favorite"
+            >
+              <span
+                className="material-symbols-outlined text-lg"
+                style={{
+                  fontVariationSettings: `'FILL' ${isFavorited ? 1 : 0}`,
+                }}
+              >
+                {isFavorited ? "favorite" : "favorite_border"}
+              </span>
+            </button>
           )}
 
           <button
@@ -81,6 +100,7 @@ const ProductCard = ({ product }) => {
           </h3>
 
           <div className="flex items-center justify-between gap-3">
+            {/* (Price display - no change) */}
             <div>
               {product.isOnSale && product.discountedPrice > 0 ? (
                 <>
@@ -98,6 +118,7 @@ const ProductCard = ({ product }) => {
               )}
             </div>
 
+            {/* (Rating display - no change) */}
             <div className="flex items-center gap-2 text-sm text-zinc-500">
               <span className="inline-flex items-center gap-1">
                 <svg
