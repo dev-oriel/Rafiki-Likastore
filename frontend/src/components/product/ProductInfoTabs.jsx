@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
-const ProductInfoTabs = () => {
+// 1. Accept 'product' as a prop
+const ProductInfoTabs = ({ product }) => {
   const [activeTab, setActiveTab] = useState("description");
 
   return (
@@ -33,41 +34,14 @@ const ProductInfoTabs = () => {
       <div className="py-8">
         {/* Description Tab Content */}
         {activeTab === "description" && (
+          // 2. Replaced hard-coded text with dynamic description
           <div className="prose prose-zinc dark:prose-invert max-w-none">
-            <h3 className="font-bold text-xl text-zinc-900 dark:text-white">
-              Product Story
-            </h3>
-            <p>
-              For a smooth and refreshing tasting drink, Captain Morgan Original
-              Spiced Gold is best served in a tankard over ice, with cola. The
-              perfect serve is 25ml of Captain Morgan Original Spiced Gold,
-              100ml of cola and a slice of lime. Smooth and medium bodied, this
-              spiced rum is a secret blend of Caribbean rums and mellow spice
-              and other natural flavours. It gets its distinct richness and
-              amber colour from aging in charred white oak barrels. Captain
-              Morgan Original Spiced Gold is the perfect spirit for legendary
-              times with your favourite crewmates.
-            </p>
-            <h3 className="font-bold text-xl text-zinc-900 dark:text-white">
-              Tasting Notes
-            </h3>
-            <ul>
-              <li>
-                <strong>Nose:</strong> Rich natural vanilla, brown sugar, dried
-                fruit, warming spices with hints of oak.
-              </li>
-              <li>
-                <strong>Palate:</strong> A perfectly balanced spirit with a
-                smooth finish.
-              </li>
-              <li>
-                <strong>Finish:</strong> Comes together in an experience that is
-                smooth and refreshing.
-              </li>
-            </ul>
+            {/* 3. 'whitespace-pre-line' respects line breaks from the textarea */}
+            <p className="whitespace-pre-line">{product.description}</p>
           </div>
         )}
-        {/* Reviews Tab Content */}
+
+        {/* Reviews Tab Content (remains a placeholder) */}
         {activeTab === "reviews" && (
           <div>
             <h3 className="font-bold text-xl text-zinc-900 dark:text-white">

@@ -1,15 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
-import { AnimatePresence, motion } from "framer-motion"; // For a smooth entry/exit
+import { motion } from "framer-motion"; // For a smooth entry/exit
+import { formatCurrency } from "../../utils/formatCurrency"; // 1. Import KES formatter
 
-// Helper to format currency
-const formatCurrency = (value) => {
-  return `$${Number(value).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-};
+// 2. Get the base URL
+const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
 const CartPreview = ({ onClose }) => {
   // Get all functions and data from our CartContext
@@ -52,62 +48,72 @@ const CartPreview = ({ onClose }) => {
           ) : (
             <>
               <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
-                {cartItems.map((item) => (
-                  <div key={item._id} className="flex items-center gap-3">
-                    <img
-                      alt={item.name}
-                      className="w-14 h-14 rounded-md object-contain bg-zinc-50 dark:bg-zinc-700 p-1 flex-shrink-0"
-                      src={item.image}
-                    />
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-sm text-zinc-800 dark:text-zinc-100 line-clamp-1">
-                        {item.name}
-                      </h4>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {item.quantity} × {formatCurrency(item.price)}
-                      </p>
+                {cartItems.map((item) => {
+                  // 3. Fix the image path
+                  const imageUrl = item.image.startsWith("http")
+                    ? item.image
+                    : `${API_BASE_URL}${item.image}`;
 
-                      <div className="mt-2 flex items-center gap-2">
-                        <button
-                          onClick={() =>
-                            updateQuantity(item._id, item.quantity - 1)
-                          }
-                          className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-700 text-sm font-bold"
-                          aria-label={`Decrease ${item.name}`}
-                        >
-                          -
-                        </button>
-                        <div className="text-sm font-medium w-4 text-center">
-                          {item.quantity}
+                  return (
+                    <div key={item._id} className="flex items-center gap-3">
+                      <img
+                        alt={item.name}
+                        className="w-14 h-14 rounded-md object-contain bg-zinc-50 dark:bg-zinc-700 p-1 flex-shrink-0"
+                        src={imageUrl} // 4. Use the corrected URL
+                      />
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-sm text-zinc-800 dark:text-zinc-100 line-clamp-1">
+                          {item.name}
+                        </h4>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {/* 5. Use KES formatter */}
+                          {item.quantity} × {formatCurrency(item.price)}
+                        </p>
+
+                        <div className="mt-2 flex items-center gap-2">
+                          <button
+                            onClick={() =>
+                              updateQuantity(item._id, item.quantity - 1)
+                            }
+                            className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-700 text-sm font-bold"
+                            aria-label={`Decrease ${item.name}`}
+                          >
+                            -
+                          </button>
+                          <div className="text-sm font-medium w-4 text-center">
+                            {item.quantity}
+                          </div>
+                          <button
+                            onClick={() =>
+                              updateQuantity(item._id, item.quantity + 1)
+                            }
+                            className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-700 text-sm font-bold"
+                            aria-label={`Increase ${item.name}`}
+                          >
+                            +
+                          </button>
+                          <button
+                            onClick={() => removeFromCart(item._id)}
+                            className="ml-2 text-xs text-red-600 dark:text-red-400"
+                          >
+                            Remove
+                          </button>
                         </div>
-                        <button
-                          onClick={() =>
-                            updateQuantity(item._id, item.quantity + 1)
-                          }
-                          className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-700 text-sm font-bold"
-                          aria-label={`Increase ${item.name}`}
-                        >
-                          +
-                        </button>
-                        <button
-                          onClick={() => removeFromCart(item._id)}
-                          className="ml-2 text-xs text-red-600 dark:text-red-400"
-                        >
-                          Remove
-                        </button>
+                      </div>
+
+                      <div className="font-bold text-sm text-zinc-900 dark:text-white">
+                        {/* 6. Use KES formatter */}
+                        {formatCurrency(item.price * item.quantity)}
                       </div>
                     </div>
-
-                    <div className="font-bold text-sm text-zinc-900 dark:text-white">
-                      {formatCurrency(item.price * item.quantity)}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="border-t border-zinc-200 dark:border-zinc-700 mt-4 pt-4">
                 <div className="flex justify-between font-bold text-zinc-900 dark:text-white">
                   <span>Subtotal</span>
+                  {/* 7. Use KES formatter */}
                   <span>{formatCurrency(subtotal)}</span>
                 </div>
 

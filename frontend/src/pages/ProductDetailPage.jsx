@@ -5,9 +5,10 @@ import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
 import RelatedProducts from "../components/product/RelatedProducts";
 import ProductInfoTabs from "../components/product/ProductInfoTabs";
-import { Loader } from "lucide-react"; // Import Loader
+import { Loader } from "lucide-react";
+import { formatCurrency } from "../utils/formatCurrency";
 
-// (Breadcrumbs component)
+// (Breadcrumbs component - no change)
 const Breadcrumbs = ({ category, name }) => (
   <div className="flex flex-wrap gap-2 mb-8">
     <Link
@@ -34,10 +35,10 @@ const Breadcrumbs = ({ category, name }) => (
   </div>
 );
 
-// (Helper to get the server URL for images)
+// (API_BASE_URL - no change)
 const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
-// (ProductImage component)
+// (ProductImage component - no change)
 const ProductImage = ({ image, name }) => (
   <div className="w-full aspect-[3/4] rounded-lg bg-white dark:bg-zinc-900/50 p-6 flex items-center justify-center relative group">
     <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4/5 h-2/5 bg-amber-500/20 blur-3xl rounded-full"></div>
@@ -53,7 +54,7 @@ const ProductImage = ({ image, name }) => (
   </div>
 );
 
-// (ProductDetails component)
+// (ProductDetails component - no change)
 const ProductDetails = ({ product }) => {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
@@ -75,22 +76,86 @@ const ProductDetails = ({ product }) => {
       </div>
 
       <div className="flex items-center gap-3">
-        {/* (Rating logic) */}
+        <div className="flex gap-0.5">
+          <span
+            className="material-symbols-outlined text-amber-500"
+            style={{ fontVariationSettings: "'FILL' 1", fontSize: "20px" }}
+          >
+            star
+          </span>
+          <span
+            className="material-symbols-outlined text-amber-500"
+            style={{ fontVariationSettings: "'FILL' 1", fontSize: "20px" }}
+          >
+            star
+          </span>
+          <span
+            className="material-symbols-outlined text-amber-500"
+            style={{ fontVariationSettings: "'FILL' 1", fontSize: "20px" }}
+          >
+            star
+          </span>
+          <span
+            className="material-symbols-outlined text-amber-500"
+            style={{ fontVariationSettings: "'FILL' 1", fontSize: "20px" }}
+          >
+            star
+          </span>
+          <span
+            className="material-symbols-outlined text-amber-500/40"
+            style={{ fontSize: "20px" }}
+          >
+            star
+          </span>
+        </div>
         <span className="text-zinc-600 dark:text-zinc-400 text-sm font-medium">
           4.5 (128 Reviews)
         </span>
       </div>
 
       <p className="text-zinc-900 dark:text-white text-5xl font-extrabold">
-        ${product.price.toFixed(2)}
+        {formatCurrency(product.price)}
       </p>
 
       <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-prose">
         {product.description}
       </p>
 
-      {/* (Info Blocks: Alcohol, Volume, etc.) */}
-
+      <div className="grid grid-cols-3 gap-4 border-t border-b border-zinc-200 dark:border-zinc-800 py-4">
+        <div className="flex flex-col items-center gap-1.5 text-center">
+          <span className="material-symbols-outlined text-zinc-500 dark:text-zinc-400 text-2xl">
+            category
+          </span>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+            Category
+          </span>
+          <span className="text-sm font-bold text-zinc-900 dark:text-white">
+            {product.category}
+          </span>
+        </div>
+        <div className="flex flex-col items-center gap-1.5 text-center">
+          <span className="material-symbols-outlined text-zinc-500 dark:text-zinc-400 text-2xl">
+            inventory_2
+          </span>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+            In Stock
+          </span>
+          <span className="text-sm font-bold text-zinc-900 dark:text-white">
+            {product.countInStock}
+          </span>
+        </div>
+        <div className="flex flex-col items-center gap-1.5 text-center">
+          <span className="material-symbols-outlined text-zinc-500 dark:text-zinc-400 text-2xl">
+            local_shipping
+          </span>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+            Delivery
+          </span>
+          <span className="text-sm font-bold text-zinc-900 dark:text-white">
+            Today
+          </span>
+        </div>
+      </div>
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex items-center rounded-full bg-gray-100 dark:bg-zinc-800 p-1">
           <button
@@ -126,7 +191,7 @@ const ProductDetails = ({ product }) => {
 
 // (Main Page Component)
 const ProductDetailPage = () => {
-  const { id } = useParams(); // Get ID from router
+  const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -135,7 +200,7 @@ const ProductDetailPage = () => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const { data } = await api.get(`/products/${id}`); // Real API call
+        const { data } = await api.get(`/products/${id}`);
         setProduct(data);
       } catch (err) {
         console.error(err);
@@ -172,8 +237,15 @@ const ProductDetailPage = () => {
         <ProductDetails product={product} />
       </div>
 
-      <ProductInfoTabs />
-      <RelatedProducts />
+      {/* --- THIS IS THE FIX --- */}
+      {/* Pass the product object to the tabs component */}
+      <ProductInfoTabs product={product} />
+      {/* --- END OF FIX --- */}
+
+      <RelatedProducts
+        category={product.category}
+        currentProductId={product._id}
+      />
     </main>
   );
 };
