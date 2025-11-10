@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"; // Import icons for na
 import imgJameson from "../../assets/jameson.png";
 import imgJackDaniels from "../../assets/jackdaniels.png";
 import imgBlackLabel from "../../assets/blacklabel.png";
-import imgRedLabel from "../../assets/redlabel.jpg";
+import imgRedLabel from "../../assets/redlabel.png";
 import imgChateau from "../../assets/chateau.png";
 
 export default function Hero() {
@@ -68,7 +68,7 @@ export default function Hero() {
   return (
     <section
       aria-labelledby="hero-heading"
-      className="relative w-full overflow-hidden bg-gradient-to-br from-amber-50 via-white to-amber-100 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900"
+      className="relative w-full overflow-hidden bg-linear-to-br from-amber-50 via-white to-amber-100 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900"
     >
       <div className="container mx-auto px-6 py-16 sm:py-20 lg:py-28">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:items-center">
@@ -78,7 +78,7 @@ export default function Hero() {
               className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl md:text-6xl"
             >
               <span className="block">Your Friendly Neighborhood</span>
-              <span className="block bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 bg-clip-text text-transparent">
+              <span className="block bg-linear-to-r from-amber-600 via-amber-500 to-amber-400 bg-clip-text text-transparent">
                 Liquor Stop — delivered fast.
               </span>
             </h1>
@@ -173,7 +173,7 @@ export default function Hero() {
                 <img
                   src={currentProduct.image}
                   alt={currentProduct.name}
-                  className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 h-full object-contain max-h-[500px] w-auto transition-transform duration-300 ease-in-out hover:scale-105 z-0 -rotate-12"
+                  className="absolute left-1/2 top-20 -translate-x-1/2 -translate-y-1/2 h-full object-contain max-h-[500px] w-auto transition-transform duration-300 ease-in-out hover:scale-105 z-0 -rotate-30"
                 />
                 {/* --- END OF FIX --- */}
 
