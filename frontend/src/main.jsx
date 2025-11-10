@@ -20,6 +20,7 @@ import GuestRoute from "./components/GuestRoute.jsx";
 import MyOrdersPage from "./pages/MyOrdersPage.jsx";
 import CheckoutPage from "./pages/CheckoutPage.jsx";
 import OrderSuccessPage from "./pages/OrderSuccessPage.jsx";
+import OffersPage from "./pages/OffersPage.jsx";
 
 // --- Admin Imports ---
 import AdminRoute from "./components/AdminRoute.jsx";
@@ -39,7 +40,8 @@ const router = createBrowserRouter([
       // --- Public Pages ---
       { index: true, element: <HomePage /> },
       { path: "shop", element: <ShopPage /> },
-      { path: "product/:id", element: <ProductDetailPage /> }, // Use :id
+      { path: "product/:id", element: <ProductDetailPage /> },
+      { path: "offers", element: <OffersPage /> },
 
       // --- Guest-Only Pages ---
       {

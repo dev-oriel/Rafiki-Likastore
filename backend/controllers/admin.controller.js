@@ -2,7 +2,7 @@ import User from "../models/user.model.js";
 import Product from "../models/product.model.js";
 import Order from "../models/order.model.js";
 
-// --- New Stats Function ---
+// --- Stats Function ---
 
 // @desc    Get dashboard stats
 // @route   GET /api/admin/stats
@@ -22,18 +22,9 @@ const getDashboardStats = async (req, res, next) => {
     const totalUsers = await User.countDocuments({ isAdmin: false }); // Only count non-admin users
 
     // 3. Get recent orders (for dashboard widget)
-    // --- THIS IS THE FIX ---
-    // We now use a simpler query: find all orders where
-    // 'paymentResult.status' is NOT equal to "Failed".
-    // This will correctly include:
-    //   - Orders with no paymentResult (Pending)
-    //   - Orders with paymentResult.status: "Successful"
-    // It will correctly exclude:
-    //   - Orders with paymentResult.status: "Failed"
     const recentOrders = await Order.find({
       "paymentResult.status": { $ne: "Failed" },
     })
-      // --- END OF FIX ---
       .sort({ createdAt: -1 })
       .limit(5)
       .populate("user", "name");
@@ -150,8 +141,19 @@ const getAllProductsForAdmin = async (req, res, next) => {
 // @access  Private/Admin
 const createProduct = async (req, res, next) => {
   try {
-    const { name, price, description, image, category, countInStock } =
-      req.body;
+    // --- THIS IS THE FIX ---
+    // Added isOnSale and discountedPrice
+    const {
+      name,
+      price,
+      description,
+      image,
+      category,
+      countInStock,
+      isOnSale,
+      discountedPrice,
+    } = req.body;
+
     const product = new Product({
       name,
       price,
@@ -160,7 +162,10 @@ const createProduct = async (req, res, next) => {
       category,
       countInStock,
       user: req.user._id,
+      isOnSale: Boolean(isOnSale), // Ensure it's a boolean
+      discountedPrice: Number(discountedPrice) || 0, // Ensure it's a number
     });
+    // --- END OF FIX ---
 
     const createdProduct = await product.save();
     res.status(201).json(createdProduct);
@@ -174,8 +179,20 @@ const createProduct = async (req, res, next) => {
 // @access  Private/Admin
 const updateProduct = async (req, res, next) => {
   try {
-    const { name, price, description, image, category, countInStock } =
-      req.body;
+    // --- THIS IS THE FIX ---
+    // Added isOnSale and discountedPrice
+    const {
+      name,
+      price,
+      description,
+      image,
+      category,
+      countInStock,
+      isOnSale,
+      discountedPrice,
+    } = req.body;
+    // --- END OF FIX ---
+
     const product = await Product.findById(req.params.id);
 
     if (product) {
@@ -185,6 +202,11 @@ const updateProduct = async (req, res, next) => {
       product.image = image;
       product.category = category;
       product.countInStock = countInStock;
+
+      // --- THIS IS THE FIX ---
+      product.isOnSale = Boolean(isOnSale);
+      product.discountedPrice = Number(discountedPrice) || 0;
+      // --- END OF FIX ---
 
       const updatedProduct = await product.save();
       res.json(updatedProduct);
@@ -207,7 +229,7 @@ const deleteProduct = async (req, res, next) => {
       await product.deleteOne();
       res.json({ message: "Product removed" });
     } else {
-      res.status(404);
+      res.status(44);
       throw new Error("Product not found");
     }
   } catch (error) {

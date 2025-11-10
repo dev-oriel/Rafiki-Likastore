@@ -1,20 +1,25 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { formatCurrency } from "../../utils/formatCurrency"; // 1. Import KES formatter
+import { formatCurrency } from "../../utils/formatCurrency";
 
-// 2. Get the base URL
 const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
 const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
-  // 3. Fix image path
   const imageUrl = item.image.startsWith("http")
     ? item.image
     : `${API_BASE_URL}${item.image}`;
 
+  // --- THIS IS THE FIX ---
+  // 1. Determine the correct price to use
+  const priceToUse =
+    item.isOnSale && item.discountedPrice > 0
+      ? item.discountedPrice
+      : item.price;
+  // --- END OF FIX ---
+
   return (
     <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800 shadow-sm">
       <Link to={`/product/${item._id}`}>
-        {/* 4. Replaced <div> with <img> for consistency */}
         <img
           src={imageUrl}
           alt={item.name}
@@ -28,9 +33,9 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
             {item.name}
           </p>
         </Link>
-        {/* 5. Use KES formatter */}
+        {/* 2. Use the correct price */}
         <p className="text-zinc-500 dark:text-gray-400 text-sm font-normal leading-normal">
-          {formatCurrency(item.price)}
+          {formatCurrency(priceToUse)}
         </p>
       </div>
 
@@ -57,8 +62,8 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
 
       {/* Total Price */}
       <p className="text-base font-bold w-20 text-right text-zinc-900 dark:text-gray-200 hidden sm:block">
-        {/* 6. Use KES formatter */}
-        {formatCurrency(item.price * item.quantity)}
+        {/* 3. Use the correct total */}
+        {formatCurrency(priceToUse * item.quantity)}
       </p>
 
       {/* Remove Button */}

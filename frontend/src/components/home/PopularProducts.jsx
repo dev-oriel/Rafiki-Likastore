@@ -3,8 +3,8 @@ import ProductCard from "./ProductCard";
 import api from "../../services/api";
 import { Link } from "react-router-dom";
 
-const StudentFavorites = () => {
-  const [favorites, setFavorites] = useState([]);
+const PopularProducts = () => {
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -12,9 +12,10 @@ const StudentFavorites = () => {
       try {
         setLoading(true);
         const { data } = await api.get("/products"); // backend returns { products: [...] }
-        setFavorites((data.products || []).slice(4, 8)); // keep original selection window
+        // Get another slice of products (e.g., 8-12)
+        setProducts((data.products || []).slice(8, 12));
       } catch (err) {
-        console.error("Failed to fetch favorites", err);
+        console.error("Failed to fetch popular products", err);
       } finally {
         setLoading(false);
       }
@@ -22,26 +23,29 @@ const StudentFavorites = () => {
     fetchProducts();
   }, []);
 
+  // Don't render the section if no products were found
+  if (products.length === 0 && !loading) {
+    return null;
+  }
+
   return (
-    <section className="pt-16 pb-4 border-2 sm:py-24">
+    <section className="pt-16 pb-4 border-2 border-green-500 sm:py-24 bg-zinc-50 dark:bg-zinc-900/50">
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
           <div>
             <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
-              Student Favorites
+              Popular Right Now
             </h2>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 max-w-xl">
-              Popular picks among students — value-driven, easy to enjoy, and
-              perfect for social gatherings.
+              Check out what other students are buying right now.
             </p>
           </div>
-
           <div className="flex items-center gap-3">
             <Link
               to="/shop"
               className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/6 px-4 py-2 text-sm font-medium text-amber-600 hover:bg-amber-500/10"
             >
-              Browse all student picks
+              View all products
               <span className="material-symbols-outlined text-sm">
                 arrow_forward
               </span>
@@ -49,6 +53,7 @@ const StudentFavorites = () => {
           </div>
         </div>
 
+        {/* Grid */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
           {loading
             ? [1, 2, 3, 4].map((i) => (
@@ -64,15 +69,13 @@ const StudentFavorites = () => {
                   </div>
                 </div>
               ))
-            : favorites.map((product) => (
+            : products.map((product) => (
                 <ProductCard key={product._id} product={product} />
               ))}
         </div>
-
-        {/* --- DUPLICATE LINK REMOVED FROM HERE --- */}
       </div>
     </section>
   );
 };
 
-export default StudentFavorites;
+export default PopularProducts;

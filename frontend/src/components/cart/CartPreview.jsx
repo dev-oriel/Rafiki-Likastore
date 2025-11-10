@@ -1,21 +1,19 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
-import { motion } from "framer-motion"; // For a smooth entry/exit
-import { formatCurrency } from "../../utils/formatCurrency"; // 1. Import KES formatter
+import { motion } from "framer-motion";
+import { formatCurrency } from "../../utils/formatCurrency";
 
-// 2. Get the base URL
 const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
 const CartPreview = ({ onClose }) => {
-  // Get all functions and data from our CartContext
   const { cartItems, updateQuantity, removeFromCart, subtotal, clearCart } =
     useCart();
   const navigate = useNavigate();
 
   const handleNavigate = (path) => {
-    onClose?.(); // Close the preview
-    navigate(path); // Go to the new page
+    onClose?.();
+    navigate(path);
   };
 
   return (
@@ -49,25 +47,32 @@ const CartPreview = ({ onClose }) => {
             <>
               <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
                 {cartItems.map((item) => {
-                  // 3. Fix the image path
                   const imageUrl = item.image.startsWith("http")
                     ? item.image
                     : `${API_BASE_URL}${item.image}`;
+
+                  // --- THIS IS THE FIX ---
+                  // 1. Determine the correct price to use
+                  const priceToUse =
+                    item.isOnSale && item.discountedPrice > 0
+                      ? item.discountedPrice
+                      : item.price;
+                  // --- END OF FIX ---
 
                   return (
                     <div key={item._id} className="flex items-center gap-3">
                       <img
                         alt={item.name}
                         className="w-14 h-14 rounded-md object-contain bg-zinc-50 dark:bg-zinc-700 p-1 flex-shrink-0"
-                        src={imageUrl} // 4. Use the corrected URL
+                        src={imageUrl}
                       />
                       <div className="flex-1">
                         <h4 className="font-semibold text-sm text-zinc-800 dark:text-zinc-100 line-clamp-1">
                           {item.name}
                         </h4>
+                        {/* 2. Use the correct price */}
                         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                          {/* 5. Use KES formatter */}
-                          {item.quantity} × {formatCurrency(item.price)}
+                          {item.quantity} × {formatCurrency(priceToUse)}
                         </p>
 
                         <div className="mt-2 flex items-center gap-2">
@@ -102,8 +107,8 @@ const CartPreview = ({ onClose }) => {
                       </div>
 
                       <div className="font-bold text-sm text-zinc-900 dark:text-white">
-                        {/* 6. Use KES formatter */}
-                        {formatCurrency(item.price * item.quantity)}
+                        {/* 3. Use the correct total */}
+                        {formatCurrency(priceToUse * item.quantity)}
                       </div>
                     </div>
                   );
@@ -113,7 +118,7 @@ const CartPreview = ({ onClose }) => {
               <div className="border-t border-zinc-200 dark:border-zinc-700 mt-4 pt-4">
                 <div className="flex justify-between font-bold text-zinc-900 dark:text-white">
                   <span>Subtotal</span>
-                  {/* 7. Use KES formatter */}
+                  {/* The subtotal from context is now correct! */}
                   <span>{formatCurrency(subtotal)}</span>
                 </div>
 

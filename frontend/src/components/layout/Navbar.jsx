@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { useCart } from "../../context/CartContext"; // 1. Import useCart
+import { useCart } from "../../context/CartContext";
 
 // Logo for Rafiki Likastore
 const Logo = () => (
@@ -20,7 +20,7 @@ const Navbar = () => {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
   const { user } = useAuth(); // Use our AuthContext
-  const { itemCount } = useCart(); // 2. Use real itemCount from CartContext
+  const { itemCount } = useCart(); // Use real itemCount from CartContext
 
   const handleSubmitSearch = (e) => {
     e?.preventDefault?.();
@@ -29,7 +29,6 @@ const Navbar = () => {
     setQuery("");
   };
 
-  // --- THIS IS THE FIX ---
   // Base URL for images
   const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", ""); // http://localhost:5000
 
@@ -37,7 +36,6 @@ const Navbar = () => {
   const avatarSrc = user?.avatar
     ? `${API_BASE_URL}${user.avatar}` // e.g., http://localhost:5000/uploads/avatar-123.png
     : `https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || "User"}`;
-  // --- END OF FIX ---
 
   // Helper for NavLink active state
   const getNavLinkClass = ({ isActive }) =>
@@ -47,6 +45,7 @@ const Navbar = () => {
         : "text-zinc-700 dark:text-zinc-300 hover:text-amber-600 dark:hover:text-amber-500"
     }`;
 
+  // --- THIS IS THE FIX ---
   // Links for mobile and desktop
   const navLinks = (
     <>
@@ -64,6 +63,14 @@ const Navbar = () => {
       >
         Shop
       </NavLink>
+      {/* 1. Added the Offers link */}
+      <NavLink
+        to="/offers"
+        className={getNavLinkClass}
+        onClick={() => setMobileOpen(false)}
+      >
+        Offers
+      </NavLink>
       {user && (
         <NavLink
           to="/my-orders"
@@ -75,6 +82,7 @@ const Navbar = () => {
       )}
     </>
   );
+  // --- END OF FIX ---
 
   return (
     <header className="sticky top-0 z-50 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-lg shadow-sm border-b border-zinc-200 dark:border-zinc-800">
@@ -131,7 +139,6 @@ const Navbar = () => {
               <span className="material-symbols-outlined text-2xl">
                 shopping_cart
               </span>
-              {/* 3. Use real itemCount from context */}
               {itemCount > 0 && (
                 <span className="absolute -top-1 -right-2 bg-amber-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                   {itemCount}
@@ -207,6 +214,7 @@ const Navbar = () => {
       >
         <div className="container mx-auto px-4 py-4">
           <nav className="flex flex-col gap-3" aria-label="Mobile navigation">
+            {/* 2. The navLinks variable now includes "Offers" */}
             {navLinks}
             <hr className="dark:border-zinc-700" />
             {user ? (

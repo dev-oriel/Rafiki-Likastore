@@ -8,7 +8,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL
   ? import.meta.env.VITE_API_URL.replace("/api", "")
   : "";
 
-const PLACEHOLDER = "/placeholder-400x300.png"; // ensure this exists in /public
+const PLACEHOLDER = "/placeholder-400x300.png";
 
 const ShopProductCard = ({ product }) => {
   const { addToCart } = useCart();
@@ -30,6 +30,20 @@ const ShopProductCard = ({ product }) => {
       ? rawImage
       : `${API_BASE_URL}${rawImage}`;
 
+  // --- THIS IS THE FIX ---
+  // 1. Calculate discount percentage
+  let discountPercent = 0;
+  if (
+    product.isOnSale &&
+    product.discountedPrice > 0 &&
+    product.price > product.discountedPrice
+  ) {
+    discountPercent = Math.round(
+      ((product.price - product.discountedPrice) / product.price) * 100
+    );
+  }
+  // --- END OF FIX ---
+
   return (
     <article className="group relative flex flex-col rounded-2xl bg-white dark:bg-zinc-900/40 shadow-sm hover:shadow-lg transition-transform transform hover:-translate-y-1 p-4 overflow-hidden">
       <Link to={`/product/${product._id}`} className="block">
@@ -45,7 +59,13 @@ const ShopProductCard = ({ product }) => {
             }}
           />
 
-          {/* Quick cart button */}
+          {/* 2. Update badge to show percentage */}
+          {product.isOnSale && (
+            <span className="absolute left-3 top-3 rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold text-white">
+              {discountPercent > 0 ? `${discountPercent}% OFF` : "On Offer"}
+            </span>
+          )}
+
           <button
             onClick={handleAddToCart}
             aria-label={`Add ${product.name} to cart`}
@@ -57,16 +77,26 @@ const ShopProductCard = ({ product }) => {
         </div>
 
         <div className="mt-4 flex flex-col gap-2">
-          <h3 className="text-base font-semibold line-clamp-2 text-zinc-900 dark:text-zinc-100">
+          <h3 className="text-base font-semibold line-clamp-2 text-zinc-900 dark:text-zinc-100 h-10">
             {product.name}
           </h3>
 
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-amber-600">
-                {formatCurrency(product.price)}
-              </span>
-              {/* Removed discountedPrice logic */}
+            <div>
+              {product.isOnSale && product.discountedPrice > 0 ? (
+                <>
+                  <div className="text-sm font-bold text-amber-600 dark:text-amber-500">
+                    {formatCurrency(product.discountedPrice)}
+                  </div>
+                  <div className="text-xs line-through text-zinc-400">
+                    {formatCurrency(product.price)}
+                  </div>
+                </>
+              ) : (
+                <div className="text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                  {formatCurrency(product.price)}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-1 text-sm text-zinc-500">

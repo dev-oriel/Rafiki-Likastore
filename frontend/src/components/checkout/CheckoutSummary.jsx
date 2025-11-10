@@ -7,40 +7,52 @@ const CheckoutSummary = ({ items, subtotal, deliveryFee, total }) => (
       Order Summary
     </h2>
     <div className="space-y-4">
-      {items.map((item) => (
-        <div
-          key={item._id}
-          className="flex justify-between items-center text-sm"
-        >
-          <div className="flex items-center gap-3">
-            <img
-              src={
-                item.image.startsWith("http")
-                  ? item.image
-                  : `${import.meta.env.VITE_API_URL.replace("/api", "")}${
-                      item.image
-                    }`
-              }
-              alt={item.name}
-              className="size-10 rounded-md object-contain bg-zinc-50 dark:bg-zinc-800"
-            />
-            <div>
-              <p className="font-medium text-zinc-800 dark:text-zinc-200">
-                {item.name}
-              </p>
-              <p className="text-zinc-500 dark:text-zinc-400">
-                Qty: {item.quantity}
-              </p>
+      {items.map((item) => {
+        // --- THIS IS THE FIX ---
+        // 1. Determine the correct price to use
+        const priceToUse =
+          item.isOnSale && item.discountedPrice > 0
+            ? item.discountedPrice
+            : item.price;
+        // --- END OF FIX ---
+
+        return (
+          <div
+            key={item._id}
+            className="flex justify-between items-center text-sm"
+          >
+            <div className="flex items-center gap-3">
+              <img
+                src={
+                  item.image.startsWith("http")
+                    ? item.image
+                    : `${import.meta.env.VITE_API_URL.replace("/api", "")}${
+                        item.image
+                      }`
+                }
+                alt={item.name}
+                className="size-10 rounded-md object-contain bg-zinc-50 dark:bg-zinc-800"
+              />
+              <div>
+                <p className="font-medium text-zinc-800 dark:text-zinc-200">
+                  {item.name}
+                </p>
+                <p className="text-zinc-500 dark:text-zinc-400">
+                  Qty: {item.quantity}
+                </p>
+              </div>
             </div>
+            {/* 2. Use the correct total */}
+            <p className="font-medium text-zinc-900 dark:text-zinc-300">
+              {formatCurrency(priceToUse * item.quantity)}
+            </p>
           </div>
-          <p className="font-medium text-zinc-900 dark:text-zinc-300">
-            {formatCurrency(item.price * item.quantity)}
-          </p>
-        </div>
-      ))}
+        );
+      })}
       <div className="border-t border-dashed border-zinc-200 dark:border-zinc-700 my-4"></div>
       <div className="flex justify-between text-zinc-600 dark:text-gray-400">
         <span>Subtotal</span>
+        {/* The subtotal from context is now correct! */}
         <span className="font-medium text-zinc-900 dark:text-gray-300">
           {formatCurrency(subtotal)}
         </span>

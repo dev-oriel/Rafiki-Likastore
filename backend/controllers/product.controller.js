@@ -19,12 +19,10 @@ const getAllProducts = async (req, res, next) => {
       ];
     }
 
-    // --- THIS IS THE FIX ---
-    // 2. Category Filter (changed to look for 'type' from req.query)
+    // 2. Category Filter
     if (req.query.type) {
       filter.category = { $in: req.query.type.split(",") };
     }
-    // --- END OF FIX ---
 
     // 3. Price Filter
     const priceFilter = {};
@@ -102,4 +100,16 @@ const getProductMeta = async (req, res, next) => {
   }
 };
 
-export { getAllProducts, getProductById, getProductMeta };
+// @desc    Get all products on sale
+// @route   GET /api/products/offers
+// @access  Public
+const getOnSaleProducts = async (req, res, next) => {
+  try {
+    const products = await Product.find({ isOnSale: true });
+    res.json(products);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { getAllProducts, getProductById, getProductMeta, getOnSaleProducts };

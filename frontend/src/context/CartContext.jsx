@@ -68,10 +68,20 @@ export const CartProvider = ({ children }) => {
     [cartItems]
   );
 
+  // --- THIS IS THE FIX ---
   const subtotal = useMemo(
-    () => cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0),
+    () =>
+      cartItems.reduce((acc, item) => {
+        // Check if the item is on sale and has a valid discounted price
+        const priceToUse =
+          item.isOnSale && item.discountedPrice > 0
+            ? item.discountedPrice
+            : item.price;
+        return acc + priceToUse * item.quantity;
+      }, 0),
     [cartItems]
   );
+  // --- END OF FIX ---
 
   // 7. Provide all values to children
   const value = {

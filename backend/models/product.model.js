@@ -5,7 +5,7 @@ const productSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: "User", // Admin/Seller who added the product
+      ref: "User",
     },
     name: {
       type: String,
@@ -28,6 +28,15 @@ const productSchema = new mongoose.Schema(
       required: true,
       default: 0,
     },
+
+    discountedPrice: {
+      type: Number,
+    },
+    isOnSale: {
+      type: Boolean,
+      default: false,
+    },
+
     countInStock: {
       type: Number,
       required: true,

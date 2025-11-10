@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import { Plus, Edit, Trash2, Loader } from "lucide-react";
-import { formatCurrency } from "../../utils/formatCurrency";
+import { formatCurrency } from "../../utils/formatCurrency"; // Import KES formatter
 
 const AdminProductList = () => {
   const [products, setProducts] = useState([]);
@@ -17,7 +17,7 @@ const AdminProductList = () => {
       setLoading(true);
 
       // --- THIS IS THE FIX ---
-      // 1. Call the new, non-paginated admin route
+      // 1. Call the correct admin route
       const { data } = await api.get("/admin/products");
 
       // 2. Set state directly, as data is now an array [...]

@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import { Loader, Upload } from "lucide-react";
-import { CATEGORIES } from "../../constants/categories"; // 1. Import your new categories
+import { CATEGORIES } from "../../constants/categories";
 
 const AdminProductEdit = () => {
   const { id: productId } = useParams();
@@ -12,11 +12,13 @@ const AdminProductEdit = () => {
   const [name, setName] = useState("");
   const [price, setPrice] = useState(0);
   const [image, setImage] = useState("");
-  const [category, setCategory] = useState(CATEGORIES[0]); // 2. Set default category
+  const [category, setCategory] = useState(CATEGORIES[0]);
   const [countInStock, setCountInStock] = useState(0);
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [isOnSale, setIsOnSale] = useState(false);
+  const [discountedPrice, setDiscountedPrice] = useState(0);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
@@ -32,6 +34,8 @@ const AdminProductEdit = () => {
           setCategory(data.category);
           setCountInStock(data.countInStock);
           setDescription(data.description);
+          setIsOnSale(data.isOnSale);
+          setDiscountedPrice(data.discountedPrice || 0);
         } catch (err) {
           toast.error("Product not found");
           navigate("/admin/products");
@@ -75,6 +79,8 @@ const AdminProductEdit = () => {
       category,
       countInStock,
       description,
+      isOnSale,
+      discountedPrice: discountedPrice || 0,
     };
 
     try {
@@ -130,10 +136,10 @@ const AdminProductEdit = () => {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
-              Price (KES)
+              Original Price (KES)
             </label>
             <input
               type="number"
@@ -159,6 +165,41 @@ const AdminProductEdit = () => {
         </div>
 
         {/* --- THIS IS THE FIX --- */}
+        <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg space-y-4">
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="isOnSale"
+              checked={isOnSale}
+              onChange={(e) => setIsOnSale(e.target.checked)}
+              className="h-5 w-5 rounded text-amber-500 focus:ring-amber-500"
+            />
+            {/* 1. Updated label text */}
+            <label
+              htmlFor="isOnSale"
+              className="font-medium text-zinc-900 dark:text-amber-100"
+            >
+              Put this item on offer
+            </label>
+          </div>
+          {isOnSale && (
+            <div>
+              <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                Discounted Price (KES)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={discountedPrice}
+                onChange={(e) => setDiscountedPrice(e.target.value)}
+                className="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 shadow-sm p-3"
+                placeholder="Enter the new sale price"
+              />
+            </div>
+          )}
+        </div>
+        {/* --- END OF FIX --- */}
+
         <div>
           <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
             Category
@@ -176,7 +217,6 @@ const AdminProductEdit = () => {
             ))}
           </select>
         </div>
-        {/* --- END OF FIX --- */}
 
         <div>
           <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">

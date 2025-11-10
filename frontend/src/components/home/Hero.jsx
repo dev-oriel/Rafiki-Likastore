@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from "react"; // 1. Import useEffect
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import api from "../../services/api"; // 2. Import api
-import { formatCurrency } from "../../utils/formatCurrency"; // 3. Import KES formatter
+import api from "../../services/api";
+import { formatCurrency } from "../../utils/formatCurrency";
+import { useCart } from "../../context/CartContext";
+import toast from "react-hot-toast";
 
-// 4. Import your local images (these will be placeholders until data loads)
+// Import your local images
 import imgJackDaniels from "../../assets/jackdaniels.png";
 
 export default function Hero() {
-  // 5. Load dynamic products
   const [heroProducts, setHeroProducts] = useState([
-    // Provide a default fallback while loading
     {
       _id: "1",
       name: "Jack Daniels Whiskey",
@@ -21,14 +21,13 @@ export default function Hero() {
     },
   ]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const { addToCart } = useCart();
 
-  // 6. Fetch 5 products from the DB on load
   useEffect(() => {
     const fetchHeroProducts = async () => {
       try {
-        const { data } = await api.get("/products"); // data = { products: [...] }
+        const { data } = await api.get("/products");
         if (data.products && data.products.length > 0) {
-          // Use the first 5 products from the DB for the hero
           setHeroProducts(data.products.slice(0, 5));
         }
       } catch (err) {
@@ -56,10 +55,15 @@ export default function Hero() {
     ? currentProduct.image
     : `${API_BASE_URL}${currentProduct.image}`;
 
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    addToCart(currentProduct);
+    toast.success(`${currentProduct.name} added to cart!`);
+  };
+
   return (
     <section
       aria-labelledby="hero-heading"
-      // 7. Fixed gradient class
       className="relative w-full overflow-hidden bg-gradient-to-br from-amber-50 via-white to-amber-100 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900"
     >
       <div className="container mx-auto px-6 py-16 sm:py-20 lg:py-28">
@@ -70,7 +74,6 @@ export default function Hero() {
               className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl md:text-6xl"
             >
               <span className="block">Your Friendly Neighborhood</span>
-              {/* 8. Fixed gradient class */}
               <span className="block bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 bg-clip-text text-transparent">
                 Liquor Stop — delivered fast.
               </span>
@@ -82,11 +85,11 @@ export default function Hero() {
               actually rewards you.
             </p>
 
-            {/* (Buttons and list items remain the same) */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 to="/shop"
                 className="inline-flex items-center justify-center rounded-full bg-amber-500 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-[1.03] focus:outline-none focus:ring-4 focus:ring-amber-300"
+                aria-label="Shop now — open shop page"
               >
                 Shop Now
                 <svg
@@ -114,10 +117,12 @@ export default function Hero() {
               <Link
                 to="/offers"
                 className="mx-auto inline-flex items-center justify-center rounded-full border border-amber-200 px-5 py-3 text-sm font-semibold text-amber-700 shadow-sm bg-white/60 backdrop-blur-sm transition hover:bg-amber-50 sm:mx-0 dark:bg-zinc-800/60 dark:text-amber-400"
+                aria-label="See current offers"
               >
                 View Offers
               </Link>
             </div>
+
             <ul className="mt-4 flex flex-wrap gap-3 text-sm text-zinc-500 dark:text-zinc-400">
               <li className="inline-flex items-center gap-2">
                 <span className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-amber-800 font-medium">
@@ -159,7 +164,7 @@ export default function Hero() {
                 <img
                   src={imageUrl}
                   alt={currentProduct.name}
-                  className="absolute left-1/2 top-20 -translate-x-1/2 -translate-y-1/2 h-full object-contain max-h-[500px] w-auto transition-transform duration-300 ease-in-out hover:scale-105 z-0 "
+                  className="absolute left-1/2 top-20 -translate-x-1/2 -translate-y-1/2 h-full object-contain max-h-[500px] w-auto transition-transform duration-300 ease-in-out hover:scale-105 z-0 -rotate-12"
                 />
                 <div className="mt-auto relative z-10 bg-white/80 dark:bg-zinc-900/80 p-3 rounded-xl backdrop-blur-sm">
                   <p className="text-xl font-medium text-zinc-800 dark:text-zinc-100">
@@ -170,13 +175,18 @@ export default function Hero() {
                     {currentProduct.abv || "40% ABV"}
                   </p>
                   <div className="flex justify-between items-center mt-2">
-                    {/* 9. Use KES formatter for price */}
                     <p className="text-lg font-semibold text-amber-600">
                       {formatCurrency(currentProduct.price)}
                     </p>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Free delivery
-                    </p>
+                    <button
+                      onClick={handleAddToCart}
+                      className="flex items-center justify-center rounded-full bg-amber-500 text-white p-2 shadow-md transition-transform hover:scale-110"
+                      title={`Add ${currentProduct.name} to cart`}
+                    >
+                      <span className="material-symbols-outlined text-lg">
+                        add_shopping_cart
+                      </span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -187,11 +197,14 @@ export default function Hero() {
                 <button
                   key={index}
                   onClick={() => setActiveIndex(index)}
+                  // --- THIS IS THE FIX ---
+                  // I removed the stray 'img src={imgJackDaniels}' from here
                   className={`h-2 w-2 rounded-full transition-all duration-300 ${
                     activeIndex === index
                       ? "bg-amber-500 w-4"
                       : "bg-zinc-400 dark:bg-zinc-600"
                   }`}
+                  // --- END OF FIX ---
                   aria-label={`Go to product ${index + 1}`}
                 />
               ))}

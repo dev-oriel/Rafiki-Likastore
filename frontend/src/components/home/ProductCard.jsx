@@ -13,14 +13,12 @@ const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
 
   const handleAddToCart = (e) => {
-    // prevent navigation when clicking quick add
     e.preventDefault();
     e.stopPropagation();
     addToCart(product);
     toast.success(`${product.name} added to cart!`);
   };
 
-  // support both product.images (array) and legacy product.image (string)
   const rawImage =
     (product.images && product.images[0]) ||
     product.image ||
@@ -30,6 +28,20 @@ const ProductCard = ({ product }) => {
     rawImage && rawImage.startsWith("http")
       ? rawImage
       : `${API_BASE_URL}${rawImage}`;
+
+  // --- THIS IS THE FIX ---
+  // 1. Calculate discount percentage
+  let discountPercent = 0;
+  if (
+    product.isOnSale &&
+    product.discountedPrice > 0 &&
+    product.price > product.discountedPrice
+  ) {
+    discountPercent = Math.round(
+      ((product.price - product.discountedPrice) / product.price) * 100
+    );
+  }
+  // --- END OF FIX ---
 
   return (
     <article className="group relative flex flex-col rounded-2xl bg-white dark:bg-zinc-900/40 shadow-sm hover:shadow-lg transition-transform transform hover:-translate-y-1 p-3">
@@ -46,23 +58,17 @@ const ProductCard = ({ product }) => {
             }}
           />
 
-          {/* Badges */}
+          {/* 2. Update badge to show percentage */}
           {product.isOnSale && (
             <span className="absolute left-3 top-3 rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold text-white">
-              SALE
-            </span>
-          )}
-          {product.isFeatured && !product.isOnSale && (
-            <span className="absolute left-3 top-3 rounded-full bg-zinc-900/85 px-2 py-1 text-xs font-medium text-white">
-              Featured
+              {discountPercent > 0 ? `${discountPercent}% OFF` : "On Offer"}
             </span>
           )}
 
-          {/* quick add */}
           <button
             onClick={handleAddToCart}
             aria-label={`Add ${product.name} to cart`}
-            className="absolute right-3 top-3 z-10 inline-flex items-center justify-center rounded-full bg-amber-500 text-white p-2 opacity-90 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
+            className="absolute right-3 top-3 z-10 inline-flex items-center justify-center rounded-full bg-amber-500 text-white p-2 opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
             title={`Add ${product.name} to cart`}
           >
             <span className="material-symbols-outlined text-lg">add</span>
@@ -70,18 +76,24 @@ const ProductCard = ({ product }) => {
         </div>
 
         <div className="mt-3 flex flex-col gap-2">
-          <h3 className="text-sm font-semibold line-clamp-2 text-zinc-900 dark:text-zinc-100">
+          <h3 className="text-sm font-semibold line-clamp-2 text-zinc-900 dark:text-zinc-100 h-10">
             {product.name}
           </h3>
 
           <div className="flex items-center justify-between gap-3">
             <div>
-              <div className="text-sm font-bold text-amber-600">
-                {formatCurrency(product.price)}
-              </div>
-              {product.discountedPrice && (
-                <div className="text-xs line-through text-zinc-400">
-                  {formatCurrency(product.discountedPrice)}
+              {product.isOnSale && product.discountedPrice > 0 ? (
+                <>
+                  <div className="text-sm font-bold text-amber-600 dark:text-amber-500">
+                    {formatCurrency(product.discountedPrice)}
+                  </div>
+                  <div className="text-xs line-through text-zinc-400">
+                    {formatCurrency(product.price)}
+                  </div>
+                </>
+              ) : (
+                <div className="text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                  {formatCurrency(product.price)}
                 </div>
               )}
             </div>
