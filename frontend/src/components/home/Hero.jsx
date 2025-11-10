@@ -1,55 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // 1. Import useEffect
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react"; // Import icons for navigation
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import api from "../../services/api"; // 2. Import api
+import { formatCurrency } from "../../utils/formatCurrency"; // 3. Import KES formatter
 
-// Import your local images from the assets folder
-import imgJameson from "../../assets/jameson.png";
+// 4. Import your local images (these will be placeholders until data loads)
 import imgJackDaniels from "../../assets/jackdaniels.png";
-import imgBlackLabel from "../../assets/blacklabel.png";
-import imgRedLabel from "../../assets/redlabel.png";
-import imgChateau from "../../assets/chateau.png";
 
 export default function Hero() {
-  // Define a list of products for the carousel
-  const heroProducts = [
+  // 5. Load dynamic products
+  const [heroProducts, setHeroProducts] = useState([
+    // Provide a default fallback while loading
     {
+      _id: "1",
       name: "Jack Daniels Whiskey",
       volume: "750ml",
       abv: "40% ABV",
-      price: "KSH 3,200",
+      price: 3200,
       image: imgJackDaniels,
     },
-    {
-      name: "Jameson Irish Whiskey",
-      volume: "750ml",
-      abv: "40% ABV",
-      price: "KSH 2,800",
-      image: imgJameson,
-    },
-    {
-      name: "Johnnie Walker Black Label",
-      volume: "750ml",
-      abv: "40% ABV",
-      price: "KSH 4,500",
-      image: imgBlackLabel,
-    },
-    {
-      name: "Johnnie Walker Red Label",
-      volume: "750ml",
-      abv: "40% ABV",
-      price: "KSH 2,500",
-      image: imgRedLabel,
-    },
-    {
-      name: "Chateau Rouge Wine",
-      volume: "750ml",
-      abv: "12.5% ABV",
-      price: "KSH 1,500",
-      image: imgChateau,
-    },
-  ];
+  ]);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  const [activeIndex, setActiveIndex] = useState(0); // State to manage current active product
+  // 6. Fetch 5 products from the DB on load
+  useEffect(() => {
+    const fetchHeroProducts = async () => {
+      try {
+        const { data } = await api.get("/products"); // data = { products: [...] }
+        if (data.products && data.products.length > 0) {
+          // Use the first 5 products from the DB for the hero
+          setHeroProducts(data.products.slice(0, 5));
+        }
+      } catch (err) {
+        console.error("Failed to fetch hero products", err);
+      }
+    };
+    fetchHeroProducts();
+  }, []);
 
   const nextProduct = () => {
     setActiveIndex((prevIndex) =>
@@ -64,11 +51,16 @@ export default function Hero() {
   };
 
   const currentProduct = heroProducts[activeIndex];
+  const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
+  const imageUrl = currentProduct.image.startsWith("http")
+    ? currentProduct.image
+    : `${API_BASE_URL}${currentProduct.image}`;
 
   return (
     <section
       aria-labelledby="hero-heading"
-      className="relative w-full overflow-hidden bg-linear-to-br from-amber-50 via-white to-amber-100 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900"
+      // 7. Fixed gradient class
+      className="relative w-full overflow-hidden bg-gradient-to-br from-amber-50 via-white to-amber-100 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900"
     >
       <div className="container mx-auto px-6 py-16 sm:py-20 lg:py-28">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:items-center">
@@ -78,7 +70,8 @@ export default function Hero() {
               className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl md:text-6xl"
             >
               <span className="block">Your Friendly Neighborhood</span>
-              <span className="block bg-linear-to-r from-amber-600 via-amber-500 to-amber-400 bg-clip-text text-transparent">
+              {/* 8. Fixed gradient class */}
+              <span className="block bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 bg-clip-text text-transparent">
                 Liquor Stop — delivered fast.
               </span>
             </h1>
@@ -89,11 +82,11 @@ export default function Hero() {
               actually rewards you.
             </p>
 
+            {/* (Buttons and list items remain the same) */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 to="/shop"
                 className="inline-flex items-center justify-center rounded-full bg-amber-500 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-[1.03] focus:outline-none focus:ring-4 focus:ring-amber-300"
-                aria-label="Shop now — open shop page"
               >
                 Shop Now
                 <svg
@@ -118,16 +111,13 @@ export default function Hero() {
                   />
                 </svg>
               </Link>
-
               <Link
                 to="/offers"
                 className="mx-auto inline-flex items-center justify-center rounded-full border border-amber-200 px-5 py-3 text-sm font-semibold text-amber-700 shadow-sm bg-white/60 backdrop-blur-sm transition hover:bg-amber-50 sm:mx-0 dark:bg-zinc-800/60 dark:text-amber-400"
-                aria-label="See current offers"
               >
                 View Offers
               </Link>
             </div>
-
             <ul className="mt-4 flex flex-wrap gap-3 text-sm text-zinc-500 dark:text-zinc-400">
               <li className="inline-flex items-center gap-2">
                 <span className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-amber-800 font-medium">
@@ -149,7 +139,6 @@ export default function Hero() {
 
           {/* Dynamic Image Display with Toggle */}
           <div className="relative flex min-h-[400px] items-center justify-center lg:min-h-[500px]">
-            {/* Navigation buttons */}
             <button
               onClick={prevProduct}
               aria-label="Previous product"
@@ -165,29 +154,25 @@ export default function Hero() {
               <ChevronRight className="h-6 w-6 text-zinc-700 dark:text-zinc-300" />
             </button>
 
-            {/* Product Card and Image */}
             <div className="relative w-full h-full flex justify-center items-center">
               <div className="relative z-10 p-6 rounded-2xl bg-white/60 shadow-2xl backdrop-blur-md dark:bg-zinc-900/60 flex flex-col justify-end min-h-[300px] lg:min-h-[400px] w-80 sm:w-96">
-                {/* --- THIS IS THE FIX --- */}
-                {/* Added -rotate-12 for the left tilt */}
                 <img
-                  src={currentProduct.image}
+                  src={imageUrl}
                   alt={currentProduct.name}
-                  className="absolute left-1/2 top-20 -translate-x-1/2 -translate-y-1/2 h-full object-contain max-h-[500px] w-auto transition-transform duration-300 ease-in-out hover:scale-105 z-0 -rotate-30"
+                  className="absolute left-1/2 top-20 -translate-x-1/2 -translate-y-1/2 h-full object-contain max-h-[500px] w-auto transition-transform duration-300 ease-in-out hover:scale-105 z-0 "
                 />
-                {/* --- END OF FIX --- */}
-
-                {/* Product details at the bottom of the card */}
                 <div className="mt-auto relative z-10 bg-white/80 dark:bg-zinc-900/80 p-3 rounded-xl backdrop-blur-sm">
                   <p className="text-xl font-medium text-zinc-800 dark:text-zinc-100">
                     {currentProduct.name}
                   </p>
                   <p className="text-base text-zinc-500 dark:text-zinc-400">
-                    {currentProduct.volume} • {currentProduct.abv}
+                    {currentProduct.volume || "750ml"} •{" "}
+                    {currentProduct.abv || "40% ABV"}
                   </p>
                   <div className="flex justify-between items-center mt-2">
+                    {/* 9. Use KES formatter for price */}
                     <p className="text-lg font-semibold text-amber-600">
-                      {currentProduct.price}
+                      {formatCurrency(currentProduct.price)}
                     </p>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       Free delivery
@@ -197,7 +182,6 @@ export default function Hero() {
               </div>
             </div>
 
-            {/* Pagination dots */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex gap-2">
               {heroProducts.map((_, index) => (
                 <button
