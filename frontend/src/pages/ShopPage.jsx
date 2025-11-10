@@ -6,7 +6,9 @@ import ShopHeader from "../components/shop/ShopHeader";
 import Sidebar from "../components/shop/Sidebar";
 import ShopProductGrid from "../components/shop/ShopProductGrid";
 import { Loader } from "lucide-react";
-import useDebounce from "../hooks/useDebounce"; // 1. Import the debounce hook
+import useDebounce from "../hooks/useDebounce";
+
+const MAX_PRICE = 5000; // 1. Set max price to 5,000 KES
 
 const ShopPage = () => {
   const [products, setProducts] = useState([]);
@@ -15,7 +17,6 @@ const ShopPage = () => {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Get filter state from URL search params
   const [searchParams, setSearchParams] = useSearchParams();
 
   // --- Filter States ---
@@ -27,30 +28,39 @@ const ShopPage = () => {
   );
   const [priceRange, setPriceRange] = useState([
     Number(searchParams.get("price[gte]")) || 0,
-    Number(searchParams.get("price[lte]")) || 50000,
+    Number(searchParams.get("price[lte]")) || MAX_PRICE, // 2. Use new max price
   ]);
 
-  // 2. Debounce the search term
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  // 3. This function fetches data based on current state
+  // This is the function that fetches data
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
 
-      // Use the debounced search term for the API call
       if (debouncedSearchTerm) params.append("keyword", debouncedSearchTerm);
       if (selectedTypes.length > 0)
         params.append("type", selectedTypes.join(","));
-      if (priceRange[0] > 0) params.append("price[gte]", priceRange[0]);
-      if (priceRange[1] < 50000) params.append("price[lte]", priceRange[1]);
+
+      // --- THIS IS THE PRICE FILTER FIX ---
+      // Always send both min and max price
+      params.append("price[gte]", priceRange[0]);
+      params.append("price[lte]", priceRange[1]);
+      // --- END OF FIX ---
+
       params.append("pageNumber", page);
 
-      // Update URL with the *instant* search term for display
-      const displayParams = new URLSearchParams(params);
+      // Update URL bar (we use the instant search term here so the URL updates as you type)
+      const displayParams = new URLSearchParams();
       if (searchTerm) displayParams.set("keyword", searchTerm);
-      else displayParams.delete("keyword");
+      if (selectedTypes.length > 0)
+        displayParams.set("type", selectedTypes.join(","));
+      if (priceRange[0] > 0) displayParams.set("price[gte]", priceRange[0]);
+      if (priceRange[1] < MAX_PRICE)
+        displayParams.set("price[lte]", priceRange[1]);
+      if (page > 1) displayParams.set("pageNumber", page);
       setSearchParams(displayParams, { replace: true });
 
       // Fetch from backend
@@ -67,25 +77,24 @@ const ShopPage = () => {
     }
   }, [
     page,
-    debouncedSearchTerm,
+    debouncedSearchTerm, // API call uses debounced term
     selectedTypes,
     priceRange,
     setSearchParams,
-    searchTerm,
-  ]); // 4. Add dependencies
+    searchTerm, // URL uses instant term
+  ]);
 
-  // 5. Re-fetch whenever a debounced value or filter changes
+  // Re-fetch when filters change
   useEffect(() => {
     fetchProducts();
+    setMobileFiltersOpen(false); // Close mobile filter panel on change
   }, [fetchProducts]);
 
-  // Handler for search (updates instantly)
   const handleSearch = (term) => {
     setSearchTerm(term);
     setPage(1); // Reset to first page
   };
 
-  // Handler for type filter
   const handleTypeChange = (type) => {
     const newTypes = selectedTypes.includes(type)
       ? selectedTypes.filter((t) => t !== type)
@@ -94,7 +103,6 @@ const ShopPage = () => {
     setPage(1); // Reset to first page
   };
 
-  // Handler for price filter
   const handlePriceChange = (newRange) => {
     setPriceRange(newRange);
     setPage(1); // Reset to first page
@@ -106,15 +114,20 @@ const ShopPage = () => {
         onSearch={handleSearch}
         initialTerm={searchTerm}
         productCount={count}
+        onOpenFilters={() => setMobileFiltersOpen(true)}
       />
-      <main className="px-4 sm:px-8 md:px-12 lg:px-20 xl:px-40 flex justify-center py-10">
-        <div className="flex w-full max-w-[1280px] flex-1 gap-8">
+      {/* 3. Updated padding */}
+      <main className="px-4 sm:px-6 lg:px-8 flex justify-center py-10">
+        <div className="flex w-full max-w-7xl gap-8">
           <Sidebar
             priceRange={priceRange}
             onPriceChange={handlePriceChange}
             selectedTypes={selectedTypes}
             onTypeChange={handleTypeChange}
+            mobileOpen={mobileFiltersOpen}
+            onCloseMobile={() => setMobileFiltersOpen(false)}
           />
+
           {loading && products.length === 0 ? (
             <div className="flex-1 flex justify-center items-start pt-20">
               <Loader className="size-12 animate-spin text-amber-500" />

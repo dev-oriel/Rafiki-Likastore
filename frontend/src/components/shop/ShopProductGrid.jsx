@@ -6,7 +6,6 @@ import { Loader } from "lucide-react";
 const ShopProductGrid = ({ products, page, pages, setPage, loading }) => {
   return (
     <div className="flex-1 relative">
-      {/* Loading overlay for subsequent fetches */}
       {loading && (
         <div className="absolute inset-0 bg-white/50 dark:bg-zinc-950/50 flex justify-center items-start pt-20 z-10">
           <Loader className="size-12 animate-spin text-amber-500" />
@@ -22,15 +21,16 @@ const ShopProductGrid = ({ products, page, pages, setPage, loading }) => {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* 1 column mobile, 2 on small, 3 on md, 4 on lg+ */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((product) => (
               <ShopProductCard key={product._id} product={product} />
             ))}
           </div>
 
-          {/* --- THIS IS THE FIX --- */}
-          {/* This renders the pagination at the bottom of the grid */}
-          <Pagination page={page} pages={pages} setPage={setPage} />
+          <div className="mt-8">
+            <Pagination page={page} pages={pages} setPage={setPage} />
+          </div>
         </>
       )}
     </div>

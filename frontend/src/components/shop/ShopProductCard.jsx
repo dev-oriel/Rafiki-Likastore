@@ -2,54 +2,83 @@ import React from "react";
 import { useCart } from "../../context/CartContext";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
-import { formatCurrency } from "../../utils/formatCurrency"; 
+import { formatCurrency } from "../../utils/formatCurrency";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
+const API_BASE_URL = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL.replace("/api", "")
+  : "";
+
+const PLACEHOLDER = "/placeholder-400x300.png"; // ensure this exists in /public
 
 const ShopProductCard = ({ product }) => {
   const { addToCart } = useCart();
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
     addToCart(product);
     toast.success(`${product.name} added to cart!`);
   };
 
-  const imageUrl = product.image.startsWith("http")
-    ? product.image
-    : `${API_BASE_URL}${product.image}`;
+  const rawImage =
+    (product.images && product.images[0]) ||
+    product.image ||
+    product.thumbnail ||
+    "";
+  const imageUrl =
+    rawImage && rawImage.startsWith("http")
+      ? rawImage
+      : `${API_BASE_URL}${rawImage}`;
 
   return (
-    <div className="group relative flex flex-col gap-3 overflow-hidden rounded-lg bg-white dark:bg-zinc-900/50 p-4 transition-shadow hover:shadow-xl dark:hover:shadow-amber-500/10">
-      <Link to={`/product/${product._id}`}>
-        <div
-          className="w-full bg-center bg-no-repeat aspect-[3/4] bg-contain rounded-xl"
-          alt={product.name}
-          style={{ backgroundImage: `url("${imageUrl}")` }}
-        ></div>
+    <article className="group relative flex flex-col rounded-2xl bg-white dark:bg-zinc-900/40 shadow-sm hover:shadow-lg transition-transform transform hover:-translate-y-1 p-4 overflow-hidden">
+      <Link to={`/product/${product._id}`} className="block">
+        <div className="relative w-full h-56 rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+          <img
+            src={imageUrl || PLACEHOLDER}
+            alt={product.name}
+            loading="lazy"
+            className="w-full h-full object-contain transition-transform group-hover:scale-105"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = PLACEHOLDER;
+            }}
+          />
+
+          {/* Quick cart button */}
+          <button
+            onClick={handleAddToCart}
+            aria-label={`Add ${product.name} to cart`}
+            className="absolute right-3 top-3 z-10 inline-flex items-center justify-center rounded-full bg-amber-500 text-white p-2 opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-amber-400 transition-opacity"
+            title={`Add ${product.name} to cart`}
+          >
+            <span className="material-symbols-outlined text-lg">add</span>
+          </button>
+        </div>
+
+        <div className="mt-4 flex flex-col gap-2">
+          <h3 className="text-base font-semibold line-clamp-2 text-zinc-900 dark:text-zinc-100">
+            {product.name}
+          </h3>
+
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-amber-600">
+                {formatCurrency(product.price)}
+              </span>
+              {/* Removed discountedPrice logic */}
+            </div>
+
+            <div className="flex items-center gap-1 text-sm text-zinc-500">
+              <span>{(product.rating ?? 4.5).toFixed(1)}</span>
+              <span className="material-symbols-outlined text-amber-500 text-base">
+                star
+              </span>
+            </div>
+          </div>
+        </div>
       </Link>
-      <div>
-        <Link to={`/product/${product._id}`} className="hover:underline">
-          <p className="text-base font-bold leading-normal">{product.name}</p>
-        </Link>
-        {/* 2. Use KES formatter */}
-        <p className="text-zinc-600 dark:text-zinc-400 text-sm font-normal leading-normal">
-          {formatCurrency(product.price)}
-        </p>
-        <p className="text-zinc-600 dark:text-zinc-400 text-sm font-normal leading-normal flex items-center gap-1">
-          {product.rating || 4.5}
-          <span className="material-symbols-outlined text-amber-500 text-base">
-            star
-          </span>
-        </p>
-      </div>
-      <button
-        onClick={handleAddToCart}
-        className="absolute top-6 right-6 flex size-10 items-center justify-center rounded-full bg-amber-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-        title="Add to cart"
-      >
-        <span className="material-symbols-outlined text-2xl">add</span>
-      </button>
-    </div>
+    </article>
   );
 };
 
