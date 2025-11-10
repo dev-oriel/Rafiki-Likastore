@@ -1,57 +1,89 @@
 import React from "react";
 import PriceRangeSlider from "./PriceRangeSlider";
 import { formatCurrency } from "../../utils/formatCurrency";
-import { CATEGORIES } from "../../constants/categories";
+// 1. Remove CATEGORIES import, as we get it from props
+
+const SidebarContent = ({
+  priceRange,
+  onPriceChange,
+  selectedTypes,
+  onTypeChange,
+  categories,
+  maxPrice,
+  loading,
+}) => (
+  <div className="flex flex-col gap-8">
+    <div>
+      <h3 className="text-lg font-bold mb-4">Price Range (KES)</h3>
+      {loading ? (
+        <div className="h-10 text-sm text-zinc-500">Loading...</div>
+      ) : (
+        <>
+          <PriceRangeSlider
+            min={0}
+            max={maxPrice} // 2. Use dynamic max price
+            initialValues={priceRange}
+            onPriceChange={onPriceChange}
+          />
+          <div className="mt-2 text-sm text-zinc-500">
+            {formatCurrency(priceRange[0])} — {formatCurrency(priceRange[1])}
+          </div>
+        </>
+      )}
+    </div>
+
+    <div>
+      <h3 className="text-lg font-bold mb-4">Category</h3>
+      <div className="grid grid-cols-2 gap-2">
+        {loading ? (
+          <div className="text-sm text-zinc-500">Loading...</div>
+        ) : (
+          // 3. Map over categories from props
+          categories.map((type) => (
+            <label
+              key={type}
+              className="flex items-center gap-3 cursor-pointer bg-white/50 dark:bg-zinc-900/40 p-2 rounded-md"
+            >
+              <input
+                type="checkbox"
+                checked={selectedTypes.includes(type)}
+                onChange={() => onTypeChange(type)}
+                className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-600 text-amber-500 focus:ring-amber-500 bg-transparent dark:bg-transparent"
+              />
+              <span className="text-sm">{type}</span>
+            </label>
+          ))
+        )}
+      </div>
+    </div>
+  </div>
+);
 
 const Sidebar = ({
   priceRange,
   onPriceChange,
   selectedTypes,
   onTypeChange,
+  categories = [], // Default to empty array
+  maxPrice = 5000, // Default max price
+  loading = false,
   mobileOpen = false,
   onCloseMobile = () => {},
 }) => {
-  const MIN_PRICE = 0;
-  const MAX_PRICE = 5000; // 1. Set max price to 5,000 KES
-
   return (
     <>
       {/* Desktop sidebar */}
-      {/* 2. Made sidebar narrower for more grid space */}
       <aside className="hidden lg:block w-64 shrink-0">
-        <div className="sticky top-40 flex flex-col gap-8">
-          <div>
-            <h3 className="text-lg font-bold mb-4">Price Range (KES)</h3>
-            <PriceRangeSlider
-              min={MIN_PRICE}
-              max={MAX_PRICE}
-              initialValues={priceRange}
-              onPriceChange={onPriceChange}
-            />
-            <div className="mt-2 text-sm text-zinc-500">
-              {formatCurrency(priceRange[0])} — {formatCurrency(priceRange[1])}
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-bold mb-4">Category</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {CATEGORIES.map((type) => (
-                <label
-                  key={type}
-                  className="flex items-center gap-3 cursor-pointer bg-white/50 dark:bg-zinc-900/40 p-2 rounded-md"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedTypes.includes(type)}
-                    onChange={() => onTypeChange(type)}
-                    className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-600 text-amber-500 focus:ring-amber-500 bg-transparent dark:bg-transparent"
-                  />
-                  <span className="text-sm">{type}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+        <div className="sticky top-40">
+          <SidebarContent
+            priceRange={priceRange}
+            onPriceChange={onPriceChange}
+            selectedTypes={selectedTypes}
+            onTypeChange={onTypeChange}
+            categories={categories}
+            maxPrice={maxPrice}
+            loading={loading}
+          />
         </div>
       </aside>
 
@@ -77,39 +109,15 @@ const Sidebar = ({
               <span className="material-symbols-outlined">close</span>
             </button>
           </div>
-
-          <div className="mb-6">
-            <h4 className="font-medium mb-2">Price (KES)</h4>
-            <PriceRangeSlider
-              min={MIN_PRICE}
-              max={MAX_PRICE}
-              initialValues={priceRange}
-              onPriceChange={onPriceChange}
-            />
-            <div className="mt-2 text-sm text-zinc-500">
-              {formatCurrency(priceRange[0])} — {formatCurrency(priceRange[1])}
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-medium mb-2">Categories</h4>
-            <div className="grid grid-cols-2 gap-2">
-              {CATEGORIES.map((type) => (
-                <label
-                  key={type}
-                  className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-zinc-50 dark:bg-zinc-800"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedTypes.includes(type)}
-                    onChange={() => onTypeChange(type)}
-                    className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-600 text-amber-500 focus:ring-amber-500 bg-transparent dark:bg-transparent"
-                  />
-                  <span className="text-sm">{type}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+          <SidebarContent
+            priceRange={priceRange}
+            onPriceChange={onPriceChange}
+            selectedTypes={selectedTypes}
+            onTypeChange={onTypeChange}
+            categories={categories}
+            maxPrice={maxPrice}
+            loading={loading}
+          />
         </div>
       </div>
     </>

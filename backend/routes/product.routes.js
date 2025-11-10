@@ -3,9 +3,10 @@ const router = express.Router();
 import {
   getAllProducts,
   getProductById,
+  getProductMeta,
 } from "../controllers/product.controller.js";
 
-// These are public routes
+router.get("/meta", getProductMeta);
 router.get("/", getAllProducts);
 router.get("/:id", getProductById);
 

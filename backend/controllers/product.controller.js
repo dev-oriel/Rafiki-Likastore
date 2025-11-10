@@ -8,41 +8,43 @@ const getAllProducts = async (req, res, next) => {
     const pageSize = 12; // Number of products per page
     const page = Number(req.query.pageNumber) || 1;
 
-    // 1. Keyword Search (for name, description, category)
-    const keyword = req.query.keyword
-      ? {
-          $or: [
-            { name: { $regex: req.query.keyword, $options: "i" } },
-            { category: { $regex: req.query.keyword, $options: "i" } },
-            { description: { $regex: req.query.keyword, $options: "i" } },
-          ],
-        }
-      : {};
+    // --- Build Filter Object ---
+    const filter = {};
 
-    // 2. Category Filter
-    const category = req.query.category ? { category: req.query.category } : {};
+    // 1. Keyword Search
+    if (req.query.keyword) {
+      filter.$or = [
+        { name: { $regex: req.query.keyword, $options: "i" } },
+        { category: { $regex: req.query.keyword, $options: "i" } },
+      ];
+    }
 
-    // 3. Price Filter (e.g., ?price[gte]=100&price[lte]=500)
-    const price = req.query.price
-      ? {
-          price: {
-            $gte: Number(req.query.price.gte) || 0,
-            $lte: Number(req.query.price.lte) || 100000,
-          },
-        }
-      : {};
+    // --- THIS IS THE FIX ---
+    // 2. Category Filter (changed to look for 'type' from req.query)
+    if (req.query.type) {
+      filter.category = { $in: req.query.type.split(",") };
+    }
+    // --- END OF FIX ---
 
-    // 4. Type Filter (e.g., ?type=Whiskey,Gin)
-    // Note: Your model uses 'category', so we'll filter on that.
-    const type = req.query.type
-      ? { category: { $in: req.query.type.split(",") } }
-      : {};
+    // 3. Price Filter
+    const priceFilter = {};
+    if (req.query["price[gte]"]) {
+      priceFilter.$gte = Number(req.query["price[gte]"]);
+    }
+    if (req.query["price[lte]"]) {
+      priceFilter.$lte = Number(req.query["price[lte]"]);
+    }
 
-    // Combine all filters
-    const filter = { ...keyword, ...category, ...price, ...type };
+    if (priceFilter.$gte || priceFilter.$lte) {
+      filter.price = priceFilter;
+    }
 
+    // 4. Count total matching documents
     const count = await Product.countDocuments(filter);
+
+    // 5. Find products with filter, sort, pagination
     const products = await Product.find(filter)
+      .sort({ createdAt: -1 })
       .limit(pageSize)
       .skip(pageSize * (page - 1));
 
@@ -74,4 +76,30 @@ const getProductById = async (req, res, next) => {
   }
 };
 
-export { getAllProducts, getProductById };
+// @desc    Get product metadata (categories, max price)
+// @route   GET /api/products/meta
+// @access  Public
+const getProductMeta = async (req, res, next) => {
+  try {
+    // Get all unique categories
+    const categories = await Product.find().distinct("category");
+
+    // Find the single most expensive product
+    const maxPriceProduct = await Product.find()
+      .sort({ price: -1 })
+      .limit(1)
+      .select("price");
+
+    // Set maxPrice, rounding up to the nearest 100, default to 5000
+    const maxPrice =
+      maxPriceProduct.length > 0
+        ? Math.ceil(maxPriceProduct[0].price / 100) * 100
+        : 5000;
+
+    res.json({ categories, maxPrice });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { getAllProducts, getProductById, getProductMeta };
