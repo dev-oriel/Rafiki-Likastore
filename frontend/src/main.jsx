@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Toaster } from "react-hot-toast";
 import "./index.css";
 import { AuthProvider } from "./context/AuthContext.jsx";
@@ -89,13 +90,17 @@ const router = createBrowserRouter([
   },
 ]);
 
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <AuthProvider>
-      <CartProvider>
-        <RouterProvider router={router} />
-        <Toaster position="top-center" />
-      </CartProvider>
-    </AuthProvider>
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <AuthProvider>
+        <CartProvider>
+          <RouterProvider router={router} />
+          <Toaster position="top-center" />
+        </CartProvider>
+      </AuthProvider>
+    </GoogleOAuthProvider>
   </StrictMode>
 );

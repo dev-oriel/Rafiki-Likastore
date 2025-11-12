@@ -5,7 +5,7 @@ import { formatCurrency } from "../../utils/formatCurrency"; // 1. Import KES fo
 const OrderSummary = ({ subtotal }) => {
   const navigate = useNavigate();
 
-  const deliveryFee = subtotal > 0 ? 5.0 : 0.0;
+  const deliveryFee = subtotal > 0 ? 50.0 : 0.0;
   const total = subtotal + deliveryFee;
 
   const handleCheckout = () => {

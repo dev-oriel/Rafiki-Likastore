@@ -123,7 +123,23 @@ export const AuthProvider = ({ children }) => {
       }));
     }
   };
-  // --- END NEW FUNCTION ---
+
+  // --- NEW FUNCTION FOR GOOGLE ---
+  const handleGoogleLogin = async (googleCredential) => {
+    try {
+      // Send the credential to our backend
+      const { data } = await api.post("/users/auth/google", {
+        credential: googleCredential,
+      });
+
+      saveUser(data); // Save user, backend sets cookie
+      toast.success("Logged in with Google!");
+      return data; // Return user for redirect
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Google login failed");
+      return null;
+    }
+  };
 
   return (
     <AuthContext.Provider
@@ -135,7 +151,8 @@ export const AuthProvider = ({ children }) => {
         logout,
         refreshUser,
         loading,
-        toggleFavorite, // <-- Export new function
+        toggleFavorite,
+        handleGoogleLogin,
       }}
     >
       {children}

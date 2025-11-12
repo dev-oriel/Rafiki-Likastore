@@ -27,7 +27,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
         />
       </Link>
 
-      <div className="flex-grow">
+      <div className="grow">
         <Link to={`/product/${item._id}`} className="hover:underline">
           <p className="text-zinc-900 dark:text-gray-200 text-base font-bold leading-normal line-clamp-1">
             {item.name}
