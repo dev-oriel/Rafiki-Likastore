@@ -1,5 +1,8 @@
 import User from "../models/user.model.js";
 import generateToken from "../utils/generateToken.js";
+import { OAuth2Client } from "google-auth-library";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Helper function to set the cookie
 const sendTokenResponse = async (res, user, statusCode) => {
@@ -249,6 +252,52 @@ const getUSers = async (req, res) => {
   }
 };
 
+// --- NEW GOOGLE LOGIN FUNCTION ---
+// @desc    Auth user with Google
+// @route   POST /api/users/auth/google
+// @access  Public
+const googleLogin = async (req, res, next) => {
+  try {
+    const { credential } = req.body; // This is the token from the frontend
+
+    // Verify the token
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, picture } = payload;
+
+    // Find user in our DB
+    let user = await User.findOne({ email: email });
+
+    if (user) {
+      // User exists, log them in
+      sendTokenResponse(res, user, 200);
+    } else {
+      // User does not exist, create them
+      // Note: We create them without phone/dob, they must update this
+      // in their profile page later.
+      user = await User.create({
+        name: name,
+        email: email,
+        avatar: picture,
+        // Password is not required, so we don't provide one
+      });
+
+      if (user) {
+        sendTokenResponse(res, user, 201);
+      } else {
+        res.status(400);
+        throw new Error("Invalid user data");
+      }
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   getUSers,
   registerUser,
@@ -258,5 +307,6 @@ export {
   updateUserProfile,
   updateUserAddresses,
   updateUserPaymentMethods,
-  toggleFavorite, // <-- Added missing function
+  toggleFavorite,
+  googleLogin,
 };

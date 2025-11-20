@@ -27,16 +27,17 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: false, // 1. Make password optional
     },
     dob: {
       type: Date,
-      required: true,
+      required: false, // 2. Make dob optional
     },
     phone: {
       type: String,
-      required: true,
+      required: false, // 3. Make phone optional
       unique: true,
+      sparse: true, // Allows multiple null/empty values
     },
     isAdmin: {
       type: Boolean,
@@ -48,15 +49,12 @@ const userSchema = new mongoose.Schema(
     },
     addresses: [addressSchema],
     paymentMethods: [paymentMethodSchema],
-
-    // --- NEW FIELD ---
     favorites: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Product", // Links to the Product model
+        ref: "Product",
       },
     ],
-    // --- END NEW FIELD ---
   },
   {
     timestamps: true,
@@ -64,12 +62,18 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
+  // If user has no password (Google-only login), return false
+  if (!this.password) {
+    return false;
+  }
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+// Middleware to hash password ONLY if it's provided/modified
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) {
+  if (!this.isModified("password") || !this.password) {
     next();
+    return; // 4. Don't try to hash a null password
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);

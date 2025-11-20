@@ -8,13 +8,15 @@ import {
   updateUserProfile,
   updateUserAddresses,
   updateUserPaymentMethods,
-  toggleFavorite, // 1. Import toggleFavorite
+  toggleFavorite,
+  googleLogin, // 1. Import
 } from "../controllers/user.controller.js";
-import { protect } from "../middleware/auth.middleware.js"; // No admin needed here
+import { protect } from "../middleware/auth.middleware.js";
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/logout", logoutUser);
+router.post("/auth/google", googleLogin);
 
 router
   .route("/profile")
@@ -23,8 +25,6 @@ router
 
 router.route("/profile/addresses").put(protect, updateUserAddresses);
 router.route("/profile/payment-methods").put(protect, updateUserPaymentMethods);
-
-// --- NEW ROUTE ---
-router.route("/profile/favorites").put(protect, toggleFavorite); // 2. Add the favorites route
+router.route("/profile/favorites").put(protect, toggleFavorite);
 
 export default router;

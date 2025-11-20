@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import Input from "../components/Input";
 import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
+import { GoogleLogin } from "@react-oauth/google"; // 1. Import Google Button
 
 // Helper function to check age
 const isOldEnough = (dateString) => {
@@ -28,8 +29,24 @@ const RegisterPage = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { register } = useAuth();
+  const { register, handleGoogleLogin } = useAuth(); // 2. Get Google handler
   const navigate = useNavigate();
+
+  // 3. Google Success Handler
+  const onGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    // This backend endpoint handles both Login AND Signup automatically
+    const user = await handleGoogleLogin(credentialResponse.credential);
+    if (user) {
+      navigate("/");
+    }
+    setLoading(false);
+  };
+
+  // 4. Google Error Handler
+  const onGoogleError = () => {
+    toast.error("Google signup failed. Please try again.");
+  };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -49,11 +66,8 @@ const RegisterPage = () => {
 
     setLoading(true);
     try {
-      // 1. Just call register.
-      // The GuestRoute will automatically handle the redirect.
       await register(name, email, password, formattedPhone, dob);
-
-      // 2. REMOVED navigation logic from here.
+      // Navigation handled by GuestRoute or inside context if successful
     } catch (error) {
       console.error(error);
     } finally {
@@ -73,6 +87,29 @@ const RegisterPage = () => {
           <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-amber-400 to-amber-500 text-transparent bg-clip-text">
             Create Account
           </h1>
+
+          {/* 5. Add Google Button UI */}
+          <div className="flex justify-center mb-4">
+            <GoogleLogin
+              onSuccess={onGoogleSuccess}
+              onError={onGoogleError}
+              text="signup_with" // Changes text to "Sign up with Google"
+              useOneTap
+              theme="outline"
+              size="large"
+              width="300px"
+            />
+          </div>
+
+          {/* 6. Divider */}
+          <div className="flex items-center my-6">
+            <div className="flex-grow border-t border-zinc-300 dark:border-zinc-700"></div>
+            <span className="flex-shrink mx-4 text-zinc-500 dark:text-zinc-400">
+              or
+            </span>
+            <div className="flex-grow border-t border-zinc-300 dark:border-zinc-700"></div>
+          </div>
+
           <form onSubmit={handleSignUp}>
             <Input
               Icon={User}
