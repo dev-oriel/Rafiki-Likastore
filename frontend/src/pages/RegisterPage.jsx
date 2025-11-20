@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Loader, Lock, Mail, User, Phone, CalendarDays } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -6,8 +5,7 @@ import { toast } from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import Input from "../components/Input";
 import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
-import { GoogleLogin } from "@react-oauth/google"; // 1. Import Google Button
-
+import { GoogleLogin } from "@react-oauth/google";
 // Helper function to check age
 const isOldEnough = (dateString) => {
   if (!dateString) return false;
@@ -29,7 +27,7 @@ const RegisterPage = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { register, handleGoogleLogin } = useAuth(); // 2. Get Google handler
+  const { register, handleGoogleLogin } = useAuth();
   const navigate = useNavigate();
 
   // 3. Google Success Handler

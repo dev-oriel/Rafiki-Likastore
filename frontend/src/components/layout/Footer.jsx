@@ -1,17 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import logo from "../../assets/4.png";
 
 // SVGs (no changes)
-const Logo = () => (
-  <svg
-    className="h-full w-full"
-    fill="currentColor"
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d="M11 19.5C11 20.3284 10.3284 21 9.5 21H6.5C5.67157 21 5 20.3284 5 19.5V10H11V19.5ZM19 10H13V15.5C13 16.3284 12.3284 17 11.5 17H10.5C9.67157 17 9 16.3284 9 15.5V10H8.999C8.999 8 9 5.91899 9.001 5.614C9.018 2.625 11.231 3.443 14.502 4.043C16.89 4.493 18.981 4.972 19 5.614V10Z"></path>
-  </svg>
-);
+
 const FacebookIcon = () => (
   <svg
     aria-hidden="true"
@@ -63,7 +55,7 @@ const Footer = () => {
               <div className="size-6 text-amber-500">
                 {" "}
                 {/* Updated color */}
-                <Logo />
+                <img src={logo} alt="" />
               </div>
               <h1 className="text-xl font-bold tracking-tighter">
                 Rafiki Likastore

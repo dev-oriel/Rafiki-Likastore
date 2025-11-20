@@ -2,19 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
-
-// Logo for Rafiki Likastore
-const Logo = () => (
-  <svg
-    className="h-full w-full"
-    fill="currentColor"
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d="M11 19.5C11 20.3284 10.3284 21 9.5 21H6.5C5.67157 21 5 20.3284 5 19.5V10H11V19.5ZM19 10H13V15.5C13 16.3284 12.3284 17 11.5 17H10.5C9.67157 17 9 16.3284 9 15.5V10H8.999C8.999 8 9 5.91899 9.001 5.614C9.018 2.625 11.231 3.443 14.502 4.043C16.89 4.493 18.981 4.972 19 5.614V10Z"></path>
-  </svg>
-);
-
+import logo from "../../assets/4.png";
+ 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -96,7 +85,7 @@ const Navbar = () => {
               className="flex items-center gap-2"
             >
               <div className="h-8 w-8 text-amber-500">
-                <Logo />
+                <img src={logo} alt="" />
               </div>
               <span className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tighter">
                 Rafiki Likastore
