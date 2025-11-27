@@ -1,46 +1,35 @@
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 import multer from "multer";
-import path from "path";
-import { fileURLToPath } from "url";
+import dotenv from "dotenv";
 
-// --- Get directory name in ES Modules ---
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-// --- End ---
+dotenv.config();
 
-// Set up storage for uploaded files
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // Save files to the 'uploads' folder, which should be in the 'backend' root
-    cb(null, path.join(__dirname, "../uploads/"));
-  },
-  filename: (req, file, cb) => {
-    // Create a unique filename: fieldname-timestamp.extension
-    cb(
-      null,
-      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
-    );
+// 1. Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// 2. Configure Storage Settings
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "rafiki-products", // The folder in your Cloudinary account
+    allowed_formats: ["jpg", "png", "jpeg", "webp"],
+    // --- CONSISTENCY & SPEED MAGIC ---
+    // 1. Resize to a standard max width (e.g., 800px)
+    // 2. 'limit' ensures we don't upscale small images
+    // 3. 'f_auto' automatically serves WebP to Chrome/Edge (much faster)
+    // 4. 'q_auto' automatically adjusts quality to save bytes without losing visual quality
+    transformation: [
+      { width: 800, height: 800, crop: "limit", gravity: "center" },
+    ],
+    format: "auto", // Use modern formats (AVIF/WebP) automatically
   },
 });
 
-// File filter to allow only images
-function checkFileType(file, cb) {
-  const filetypes = /jpeg|jpg|png|gif/;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
-
-  if (mimetype && extname) {
-    return cb(null, true);
-  } else {
-    cb(new Error("Images only!"), false);
-  }
-}
-
-// Initialize multer with storage and file filter
-const upload = multer({
-  storage: storage,
-  fileFilter: (req, file, cb) => {
-    checkFileType(file, cb);
-  },
-});
+const upload = multer({ storage: storage });
 
 export default upload;
