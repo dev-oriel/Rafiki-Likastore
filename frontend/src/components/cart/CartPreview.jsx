@@ -1,10 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
-import { motion } from "framer-motion";
+import { motion } from "framer-motion"; // Ensure framer-motion is installed
 import { formatCurrency } from "../../utils/formatCurrency";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
+// Safe check for API URL
+const API_BASE_URL = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL.replace("/api", "")
+  : "";
 
 const CartPreview = ({ onClose }) => {
   const { cartItems, updateQuantity, removeFromCart, subtotal, clearCart } =
@@ -47,17 +50,15 @@ const CartPreview = ({ onClose }) => {
             <>
               <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
                 {cartItems.map((item) => {
+                  // Logic to ensure image displays correctly
                   const imageUrl = item.image.startsWith("http")
                     ? item.image
                     : `${API_BASE_URL}${item.image}`;
 
-                  // --- THIS IS THE FIX ---
-                  // 1. Determine the correct price to use
                   const priceToUse =
                     item.isOnSale && item.discountedPrice > 0
                       ? item.discountedPrice
                       : item.price;
-                  // --- END OF FIX ---
 
                   return (
                     <div key={item._id} className="flex items-center gap-3">
@@ -65,12 +66,14 @@ const CartPreview = ({ onClose }) => {
                         alt={item.name}
                         className="w-14 h-14 rounded-md object-contain bg-zinc-50 dark:bg-zinc-700 p-1 flex-shrink-0"
                         src={imageUrl}
+                        onError={(e) => {
+                          e.currentTarget.src = "/placeholder-400x300.png";
+                        }}
                       />
                       <div className="flex-1">
                         <h4 className="font-semibold text-sm text-zinc-800 dark:text-zinc-100 line-clamp-1">
                           {item.name}
                         </h4>
-                        {/* 2. Use the correct price */}
                         <p className="text-xs text-zinc-500 dark:text-zinc-400">
                           {item.quantity} × {formatCurrency(priceToUse)}
                         </p>
@@ -81,7 +84,6 @@ const CartPreview = ({ onClose }) => {
                               updateQuantity(item._id, item.quantity - 1)
                             }
                             className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-700 text-sm font-bold"
-                            aria-label={`Decrease ${item.name}`}
                           >
                             -
                           </button>
@@ -93,7 +95,6 @@ const CartPreview = ({ onClose }) => {
                               updateQuantity(item._id, item.quantity + 1)
                             }
                             className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-700 text-sm font-bold"
-                            aria-label={`Increase ${item.name}`}
                           >
                             +
                           </button>
@@ -107,7 +108,6 @@ const CartPreview = ({ onClose }) => {
                       </div>
 
                       <div className="font-bold text-sm text-zinc-900 dark:text-white">
-                        {/* 3. Use the correct total */}
                         {formatCurrency(priceToUse * item.quantity)}
                       </div>
                     </div>
@@ -118,7 +118,6 @@ const CartPreview = ({ onClose }) => {
               <div className="border-t border-zinc-200 dark:border-zinc-700 mt-4 pt-4">
                 <div className="flex justify-between font-bold text-zinc-900 dark:text-white">
                   <span>Subtotal</span>
-                  {/* The subtotal from context is now correct! */}
                   <span>{formatCurrency(subtotal)}</span>
                 </div>
 
@@ -136,6 +135,13 @@ const CartPreview = ({ onClose }) => {
                     Checkout
                   </button>
                 </div>
+
+                <button
+                  onClick={() => clearCart()}
+                  className="mt-3 w-full text-xs text-zinc-500 dark:text-zinc-400 hover:underline"
+                >
+                  Clear Cart
+                </button>
               </div>
             </>
           )}
