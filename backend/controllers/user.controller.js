@@ -8,21 +8,24 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const sendTokenResponse = async (res, user, statusCode) => {
   const token = generateToken(user._id);
 
+  // --- CRITICAL FIX FOR DEPLOYMENT ---
+  const isProduction = process.env.NODE_ENV === "production";
+
   const options = {
     expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     httpOnly: true, // Prevents client-side JS from accessing it
-    secure: process.env.NODE_ENV !== "development", // Only send over HTTPS in production
-    sameSite: "strict", // Mitigates CSRF attacks
+    // When on Render (production), we MUST allow cross-site cookies
+    sameSite: isProduction ? "none" : "lax",
+    secure: isProduction, // Must be true if sameSite is 'none'
   };
+  // -----------------------------------
 
-  // Populate favorites before sending
   await user.populate("favorites");
 
   res
     .status(statusCode)
     .cookie("jwt", token, options) // Set the cookie
     .json({
-      // Send back user data *without* the token
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -31,7 +34,7 @@ const sendTokenResponse = async (res, user, statusCode) => {
       avatar: user.avatar,
       addresses: user.addresses,
       paymentMethods: user.paymentMethods,
-      favorites: user.favorites, // Send populated favorites
+      favorites: user.favorites,
     });
 };
 
@@ -91,21 +94,26 @@ const loginUser = async (req, res, next) => {
 // @route   POST /api/users/logout
 // @access  Public
 const logoutUser = (req, res, next) => {
+  const isProduction = process.env.NODE_ENV === "production";
+
   res.cookie("jwt", "", {
     httpOnly: true,
     expires: new Date(0),
+    // Must match the settings used to set the cookie to successfully delete it
+    sameSite: isProduction ? "none" : "lax",
+    secure: isProduction,
   });
   res.status(200).json({ message: "Logged out successfully" });
 };
 
+// ... (Rest of the file: getUserProfile, updateUserProfile, etc. keep as is)
+// Just copy the functions from your existing file for the rest,
+// but make sure you export everything at the bottom.
+
 // @desc    Get user profile
-// @route   GET /api/users/profile
-// @access  Private
 const getUserProfile = async (req, res, next) => {
   try {
-    // Re-fetch user and populate favorites
     const user = await User.findById(req.user._id).populate("favorites");
-
     if (user) {
       res.json({
         _id: user._id,
@@ -116,7 +124,7 @@ const getUserProfile = async (req, res, next) => {
         avatar: user.avatar,
         addresses: user.addresses,
         paymentMethods: user.paymentMethods,
-        favorites: user.favorites, // Send populated favorites
+        favorites: user.favorites,
       });
     } else {
       res.status(404);
@@ -127,13 +135,9 @@ const getUserProfile = async (req, res, next) => {
   }
 };
 
-// @desc    Update user profile (name, email, phone, avatar)
-// @route   PUT /api/users/profile
-// @access  Private
 const updateUserProfile = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
-
     if (user) {
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
@@ -142,8 +146,7 @@ const updateUserProfile = async (req, res, next) => {
         user.avatar = req.body.avatar;
       }
       const updatedUser = await user.save();
-      await updatedUser.populate("favorites"); // Re-populate
-
+      await updatedUser.populate("favorites");
       res.json({
         _id: updatedUser._id,
         name: updatedUser.name,
@@ -164,14 +167,10 @@ const updateUserProfile = async (req, res, next) => {
   }
 };
 
-// @desc    Update user addresses
-// @route   PUT /api/users/profile/addresses
-// @access  Private
 const updateUserAddresses = async (req, res, next) => {
   try {
     const { addresses } = req.body;
     const user = await User.findById(req.user._id);
-
     if (user) {
       user.addresses = addresses;
       await user.save();
@@ -185,14 +184,10 @@ const updateUserAddresses = async (req, res, next) => {
   }
 };
 
-// @desc    Update user payment methods
-// @route   PUT /api/users/profile/payment-methods
-// @access  Private
 const updateUserPaymentMethods = async (req, res, next) => {
   try {
     const { paymentMethods } = req.body;
     const user = await User.findById(req.user._id);
-
     if (user) {
       user.paymentMethods = paymentMethods;
       await user.save();
@@ -206,9 +201,6 @@ const updateUserPaymentMethods = async (req, res, next) => {
   }
 };
 
-// @desc    Add/Remove a favorite product
-// @route   PUT /api/users/profile/favorites
-// @access  Private
 const toggleFavorite = async (req, res, next) => {
   try {
     const { productId } = req.body;
@@ -216,25 +208,20 @@ const toggleFavorite = async (req, res, next) => {
       res.status(400);
       throw new Error("Product ID is required");
     }
-
     const user = await User.findById(req.user._id);
     if (!user) {
       res.status(404);
       throw new Error("User not found");
     }
-
     const isFavorited = user.favorites.includes(productId);
-
     if (isFavorited) {
       user.favorites.pull(productId);
     } else {
       user.favorites.push(productId);
     }
-
     await user.save();
-    await user.populate("favorites"); // Re-populate to send back full objects
-
-    res.json(user.favorites); // Send back the updated list
+    await user.populate("favorites");
+    res.json(user.favorites);
   } catch (error) {
     next(error);
   }
@@ -252,40 +239,20 @@ const getUSers = async (req, res) => {
   }
 };
 
-// --- NEW GOOGLE LOGIN FUNCTION ---
-// @desc    Auth user with Google
-// @route   POST /api/users/auth/google
-// @access  Public
 const googleLogin = async (req, res, next) => {
   try {
-    const { credential } = req.body; // This is the token from the frontend
-
-    // Verify the token
+    const { credential } = req.body;
     const ticket = await client.verifyIdToken({
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
-
     const payload = ticket.getPayload();
     const { email, name, picture } = payload;
-
-    // Find user in our DB
     let user = await User.findOne({ email: email });
-
     if (user) {
-      // User exists, log them in
       sendTokenResponse(res, user, 200);
     } else {
-      // User does not exist, create them
-      // Note: We create them without phone/dob, they must update this
-      // in their profile page later.
-      user = await User.create({
-        name: name,
-        email: email,
-        avatar: picture,
-        // Password is not required, so we don't provide one
-      });
-
+      user = await User.create({ name: name, email: email, avatar: picture });
       if (user) {
         sendTokenResponse(res, user, 201);
       } else {

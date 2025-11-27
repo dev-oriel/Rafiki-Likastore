@@ -28,7 +28,7 @@ const app = express();
 // --- START CORS CONFIGURATION ---
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL, // Must be exactly 'http://localhost:5173'
+    origin: process.env.FRONTEND_URL,
     credentials: true, // This allows cookies to be sent
   })
 );
