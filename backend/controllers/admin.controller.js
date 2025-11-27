@@ -4,25 +4,16 @@ import Order from "../models/order.model.js";
 import Review from "../models/review.model.js";
 
 // --- Stats Function ---
-
-// @desc    Get dashboard stats
-// @route   GET /api/admin/stats
-// @access  Private/Admin
 const getDashboardStats = async (req, res, next) => {
   try {
-    // 1. Get total revenue from paid orders
     const paidOrders = await Order.find({ isPaid: true });
     const totalRevenue = paidOrders.reduce(
       (acc, order) => acc + order.totalPrice,
       0
     );
-
-    // 2. Get counts
     const totalOrders = await Order.countDocuments();
     const totalProducts = await Product.countDocuments();
-    const totalUsers = await User.countDocuments({ isAdmin: false }); // Only count non-admin users
-
-    // 3. Get recent orders (for dashboard widget)
+    const totalUsers = await User.countDocuments({ isAdmin: false });
     const recentOrders = await Order.find({
       "paymentResult.status": { $ne: "Failed" },
     })
@@ -43,10 +34,6 @@ const getDashboardStats = async (req, res, next) => {
 };
 
 // --- User Management ---
-
-// @desc    Get all users
-// @route   GET /api/admin/users
-// @access  Private/Admin
 const getAllUsers = async (req, res, next) => {
   try {
     const users = await User.find({});
@@ -56,9 +43,6 @@ const getAllUsers = async (req, res, next) => {
   }
 };
 
-// @desc    Delete a user
-// @route   DELETE /api/admin/users/:id
-// @access  Private/Admin
 const deleteUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
@@ -78,9 +62,6 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
-// @desc    Get user by ID
-// @route   GET /api/admin/users/:id
-// @access  Private/Admin
 const getUserById = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id).select("-password");
@@ -95,9 +76,6 @@ const getUserById = async (req, res, next) => {
   }
 };
 
-// @desc    Update user (e.g., make admin)
-// @route   PUT /api/admin/users/:id
-// @access  Private/Admin
 const updateUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
@@ -123,13 +101,8 @@ const updateUser = async (req, res, next) => {
 };
 
 // --- Product Management ---
-
-// @desc    Get all products (for admin list, no pagination)
-// @route   GET /api/admin/products
-// @access  Private/Admin
 const getAllProductsForAdmin = async (req, res, next) => {
   try {
-    // Find all products, sort by newest
     const products = await Product.find({}).sort({ createdAt: -1 });
     res.json(products);
   } catch (error) {
@@ -137,9 +110,6 @@ const getAllProductsForAdmin = async (req, res, next) => {
   }
 };
 
-// @desc    Create a product
-// @route   POST /api/admin/products
-// @access  Private/Admin
 const createProduct = async (req, res, next) => {
   try {
     const {
@@ -174,9 +144,6 @@ const createProduct = async (req, res, next) => {
   }
 };
 
-// @desc    Update a product
-// @route   PUT /api/admin/products/:id
-// @access  Private/Admin
 const updateProduct = async (req, res, next) => {
   try {
     const {
@@ -215,9 +182,6 @@ const updateProduct = async (req, res, next) => {
   }
 };
 
-// @desc    Delete a product
-// @route   DELETE /api/admin/products/:id
-// @access  Private/Admin
 const deleteProduct = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -234,18 +198,12 @@ const deleteProduct = async (req, res, next) => {
 };
 
 // --- Order Management ---
-
-// @desc    Get all orders
-// @route   GET /api/admin/orders
-// @access  Private/Admin
 const getAllOrders = async (req, res, next) => {
   try {
     const filter = {};
-
     if (req.query.isPaid) {
       filter.isPaid = true;
     }
-
     const query = Order.find(filter)
       .populate("user", "id name")
       .sort({ createdAt: -1 });
@@ -261,9 +219,6 @@ const getAllOrders = async (req, res, next) => {
   }
 };
 
-// @desc    Update order to delivered
-// @route   PUT /api/admin/orders/:id/deliver
-// @access  Private/Admin
 const updateOrderToDelivered = async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -281,18 +236,11 @@ const updateOrderToDelivered = async (req, res, next) => {
   }
 };
 
-// --- NEW SECTION: Review Management ---
-
-// @desc    Get all reviews
-// @route   GET /api/admin/reviews
-// @access  Private/Admin
+// --- Review Management ---
 const getAllReviews = async (req, res, next) => {
   try {
     const reviews = await Review.find({})
       .populate("user", "name email")
-      // --- THIS IS THE FIX ---
-      // .populate('order', '_id') // This line was removed
-      // --- END OF FIX ---
       .sort({ createdAt: -1 });
     res.json(reviews);
   } catch (error) {
@@ -300,9 +248,6 @@ const getAllReviews = async (req, res, next) => {
   }
 };
 
-// @desc    Update a review (e.g., feature it)
-// @route   PUT /api/admin/reviews/:id
-// @access  Private/Admin
 const updateReview = async (req, res, next) => {
   try {
     const { isFeatured } = req.body;
@@ -320,8 +265,6 @@ const updateReview = async (req, res, next) => {
     next(error);
   }
 };
-
-// --- END NEW SECTION ---
 
 export {
   getDashboardStats,

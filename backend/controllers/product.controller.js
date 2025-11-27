@@ -6,10 +6,9 @@ import User from "../models/user.model.js"; // 1. Import User model
 // @access  Public
 const getAllProducts = async (req, res, next) => {
   try {
-    const pageSize = 12; // Number of products per page
+    const pageSize = 12;
     const page = Number(req.query.pageNumber) || 1;
 
-    // --- Build Filter Object ---
     const filter = {};
 
     // 1. Keyword Search
@@ -20,10 +19,12 @@ const getAllProducts = async (req, res, next) => {
       ];
     }
 
-    // 2. Category Filter
-    if (req.query.type) {
-      filter.category = { $in: req.query.type.split(",") };
+    // --- THIS IS THE FIX ---
+    // 2. Category Filter (Must match frontend 'category' param)
+    if (req.query.category) {
+      filter.category = { $in: req.query.category.split(",") };
     }
+    // --- END OF FIX ---
 
     // 3. Price Filter
     const priceFilter = {};
@@ -38,10 +39,8 @@ const getAllProducts = async (req, res, next) => {
       filter.price = priceFilter;
     }
 
-    // 4. Count total matching documents
     const count = await Product.countDocuments(filter);
 
-    // 5. Find products with filter, sort, pagination
     const products = await Product.find(filter)
       .sort({ createdAt: -1 })
       .limit(pageSize)
@@ -75,21 +74,17 @@ const getProductById = async (req, res, next) => {
   }
 };
 
-// @desc    Get product metadata (categories, max price)
+// @desc    Get product metadata
 // @route   GET /api/products/meta
 // @access  Public
 const getProductMeta = async (req, res, next) => {
   try {
-    // Get all unique categories
     const categories = await Product.find().distinct("category");
-
-    // Find the single most expensive product
     const maxPriceProduct = await Product.find()
       .sort({ price: -1 })
       .limit(1)
       .select("price");
 
-    // Set maxPrice, rounding up to the nearest 100, default to 5000
     const maxPrice =
       maxPriceProduct.length > 0
         ? Math.ceil(maxPriceProduct[0].price / 100) * 100
@@ -113,6 +108,7 @@ const getOnSaleProducts = async (req, res, next) => {
   }
 };
 
+// --- MISSING FUNCTION 1 ---
 // @desc    Get all products marked as popular
 // @route   GET /api/products/popular
 // @access  Public
@@ -125,27 +121,22 @@ const getPopularProducts = async (req, res, next) => {
   }
 };
 
-// --- NEW FUNCTION ---
+// --- MISSING FUNCTION 2 ---
 // @desc    Get 4 most favorited products
 // @route   GET /api/products/favorites
 // @access  Public
 const getStudentFavorites = async (req, res, next) => {
   try {
     const favoriteProducts = await User.aggregate([
-      // 1. Deconstruct the favorites array from all users
       { $unwind: "$favorites" },
-      // 2. Group by the product ID and count how many times it appears
       {
         $group: {
           _id: "$favorites",
           count: { $sum: 1 },
         },
       },
-      // 3. Sort by the highest count
       { $sort: { count: -1 } },
-      // 4. Get the top 4
       { $limit: 4 },
-      // 5. Look up the full product details from the 'products' collection
       {
         $lookup: {
           from: "products",
@@ -154,9 +145,7 @@ const getStudentFavorites = async (req, res, next) => {
           as: "productDetails",
         },
       },
-      // 6. Unwind the productDetails array (since $lookup returns an array)
       { $unwind: "$productDetails" },
-      // 7. Replace the root to return the product object itself
       { $replaceRoot: { newRoot: "$productDetails" } },
     ]);
     res.json(favoriteProducts);
@@ -164,13 +153,12 @@ const getStudentFavorites = async (req, res, next) => {
     next(error);
   }
 };
-// --- END NEW FUNCTION ---
 
 export {
   getAllProducts,
   getProductById,
   getProductMeta,
   getOnSaleProducts,
-  getPopularProducts,
-  getStudentFavorites, // 3. Export the new function
+  getPopularProducts, // Exporting missing function
+  getStudentFavorites, // Exporting missing function
 };
