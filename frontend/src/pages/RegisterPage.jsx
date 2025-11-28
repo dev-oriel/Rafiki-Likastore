@@ -6,6 +6,8 @@ import { useAuth } from "../context/AuthContext";
 import Input from "../components/Input";
 import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
 import { GoogleLogin } from "@react-oauth/google";
+import { motion } from "framer-motion";
+
 // Helper function to check age
 const isOldEnough = (dateString) => {
   if (!dateString) return false;
