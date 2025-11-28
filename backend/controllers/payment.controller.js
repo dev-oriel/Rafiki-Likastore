@@ -2,16 +2,20 @@ import axios from "axios";
 import Order from "../models/order.model.js";
 
 // Utility function to get M-Pesa auth token
-const getMpesaToken = async (req, res, next) => {
+const getMpesaToken = async () => {
   const consumerKey = process.env.MPESA_CONSUMER_KEY;
   const consumerSecret = process.env.MPESA_CONSUMER_SECRET;
   const authUrl = process.env.MPESA_AUTH_URL;
 
-  // --- THIS IS THE FIX ---
+  // 1. Safety Check: Ensure keys exist
+  if (!consumerKey || !consumerSecret || !authUrl) {
+    console.error("❌ M-Pesa Environment Variables are missing!");
+    throw new Error("Server misconfiguration: M-Pesa keys missing.");
+  }
+
   // The string 'base64' should be in toString(), not Buffer.from()
   const authString = `${consumerKey}:${consumerSecret}`;
   const auth = `Basic ${Buffer.from(authString).toString("base64")}`;
-  // --- END OF FIX ---
 
   try {
     const response = await axios.get(authUrl, {
@@ -22,7 +26,7 @@ const getMpesaToken = async (req, res, next) => {
     return response.data.access_token;
   } catch (error) {
     console.error(
-      "M-Pesa Token Error:",
+      "❌ M-Pesa Token Error Details:",
       error.response ? error.response.data : error.message
     );
     throw new Error("Failed to get M-Pesa token");
@@ -49,12 +53,17 @@ const initiateSTKPush = async (req, res, next) => {
   try {
     token = await getMpesaToken();
   } catch (error) {
-    // If token fails, stop here
     return next(error);
   }
 
   try {
     const { orderId, phone, amount } = req.body;
+
+    // 2. Sanitize Phone: Remove '+' and ensure it starts with 254
+    let formattedPhone = phone.replace(/\+/g, ""); // Remove +
+    if (formattedPhone.startsWith("0")) {
+      formattedPhone = "254" + formattedPhone.substring(1);
+    }
 
     const shortcode = process.env.MPESA_SHORTCODE;
     const passkey = process.env.MPESA_PASSKEY;
@@ -71,14 +80,16 @@ const initiateSTKPush = async (req, res, next) => {
       Password: password,
       Timestamp: timestamp,
       TransactionType: "CustomerPayBillOnline",
-      Amount: Math.round(amount), // M-Pesa requires a whole number
-      PartyA: phone, // User's phone
+      Amount: Math.ceil(amount), // Ensure it's a whole number (ceil is safer than round for currency)
+      PartyA: formattedPhone, // User's phone
       PartyB: shortcode,
-      PhoneNumber: phone,
+      PhoneNumber: formattedPhone,
       CallBackURL: `${callbackUrl}/${orderId}`, // Attach orderId to callback
       AccountReference: "RAFIKI LIKASTORE",
-      TransactionDesc: "Payment for order",
+      TransactionDesc: `Payment for order ${orderId}`,
     };
+
+    console.log("🚀 Initiating STK Push to:", formattedPhone);
 
     const response = await axios.post(stkUrl, data, {
       headers: {
@@ -90,10 +101,14 @@ const initiateSTKPush = async (req, res, next) => {
     res.status(200).json(response.data);
   } catch (error) {
     console.error(
-      "STK Push Error:",
+      "❌ STK Push Error:",
       error.response ? error.response.data : error.message
     );
-    res.status(500).json({ message: "STK Push failed", error: error.message });
+    // Return specific error to frontend
+    res.status(500).json({
+      message: "STK Push failed",
+      error: error.response?.data?.errorMessage || error.message,
+    });
   }
 };
 
@@ -105,8 +120,8 @@ const mpesaCallback = async (req, res, next) => {
     const { orderId } = req.params;
     const callbackData = req.body.Body.stkCallback;
 
-    console.log(`--- M-Pesa Callback for Order ${orderId} ---`);
-    console.log(JSON.stringify(callbackData, null, 2));
+    console.log(`📩 M-Pesa Callback received for Order: ${orderId}`);
+    // console.log(JSON.stringify(callbackData, null, 2)); // Uncomment to debug raw data
 
     if (callbackData.ResultCode === 0) {
       // Payment was successful
@@ -117,24 +132,28 @@ const mpesaCallback = async (req, res, next) => {
 
         // Extract M-Pesa Receipt Number and other details
         const metadata = callbackData.CallbackMetadata.Item;
+
+        // Safe extraction with optional chaining
+        const receipt =
+          metadata.find((i) => i.Name === "MpesaReceiptNumber")?.Value || "N/A";
+        const date =
+          metadata
+            .find((i) => i.Name === "TransactionDate")
+            ?.Value?.toString() || new Date().toISOString();
+
         order.paymentResult = {
-          id:
-            metadata.find((i) => i.Name === "MpesaReceiptNumber")?.Value ||
-            "N/A",
+          id: receipt,
           status: "Successful",
-          update_time:
-            metadata
-              .find((i) => i.Name === "TransactionDate")
-              ?.Value.toString() || new Date().toISOString(),
+          update_time: date,
         };
 
         await order.save();
-        console.log(`Order ${orderId} marked as PAID.`);
+        console.log(`✅ Order ${orderId} marked as PAID. Receipt: ${receipt}`);
       }
     } else {
       // Payment failed or was cancelled
       console.log(
-        `Payment failed for order ${orderId}: ${callbackData.ResultDesc}`
+        `❌ Payment failed for order ${orderId}: ${callbackData.ResultDesc}`
       );
       const order = await Order.findById(orderId);
       if (order) {
@@ -150,7 +169,7 @@ const mpesaCallback = async (req, res, next) => {
     // Acknowledge receipt of the callback to M-Pesa
     res.status(200).json({ message: "Callback received" });
   } catch (error) {
-    console.error("Callback processing error:", error);
+    console.error("❌ Callback processing error:", error);
     // Don't use next(error) here, as Safaricom needs a 200 OK
     res.status(200).json({ message: "Error processed" });
   }

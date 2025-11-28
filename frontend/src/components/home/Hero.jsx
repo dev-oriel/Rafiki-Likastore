@@ -1,26 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader } from "lucide-react";
 import api from "../../services/api";
 import { formatCurrency } from "../../utils/formatCurrency";
 import { useCart } from "../../context/CartContext";
 import toast from "react-hot-toast";
 
-// Import your local images
-import imgJackDaniels from "../../assets/jackdaniels.png";
-
 export default function Hero() {
-  const [heroProducts, setHeroProducts] = useState([
-    {
-      _id: "1",
-      name: "Jack Daniels Whiskey",
-      volume: "750ml",
-      abv: "40% ABV",
-      price: 3200,
-      image: imgJackDaniels,
-    },
-  ]);
+  const [heroProducts, setHeroProducts] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -32,6 +21,8 @@ export default function Hero() {
         }
       } catch (err) {
         console.error("Failed to fetch hero products", err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchHeroProducts();
@@ -49,6 +40,20 @@ export default function Hero() {
     );
   };
 
+  // Loading View
+  if (loading) {
+    return (
+      <section className="relative w-full h-[500px] overflow-hidden bg-zinc-100 dark:bg-zinc-900 flex justify-center items-center">
+        <Loader className="animate-spin text-amber-500 h-12 w-12" />
+      </section>
+    );
+  }
+
+  // Empty View (if fetch fails or no products)
+  if (heroProducts.length === 0) {
+    return null;
+  }
+
   const currentProduct = heroProducts[activeIndex];
   const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
   const imageUrl = currentProduct.image.startsWith("http")
@@ -64,7 +69,7 @@ export default function Hero() {
   return (
     <section
       aria-labelledby="hero-heading"
-      className="relative w-full overflow-hidden bg-gradient-to-br from-amber-50 via-white to-amber-100 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900"
+      className="relative w-full overflow-hidden bg-linear-to-br from-amber-50 via-white to-amber-100 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900"
     >
       <div className="container mx-auto px-6 py-16 sm:py-20 lg:py-28">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:items-center">
@@ -74,7 +79,7 @@ export default function Hero() {
               className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl md:text-6xl"
             >
               <span className="block">Your Friendly Neighborhood</span>
-              <span className="block bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 bg-clip-text text-transparent">
+              <span className="block bg-linear-to-r from-amber-600 via-amber-500 to-amber-400 bg-clip-text text-transparent">
                 Liquor Stop — delivered fast.
               </span>
             </h1>
@@ -197,20 +202,17 @@ export default function Hero() {
                 <button
                   key={index}
                   onClick={() => setActiveIndex(index)}
-                  // --- THIS IS THE FIX ---
-                  // I removed the stray 'img src={imgJackDaniels}' from here
                   className={`h-2 w-2 rounded-full transition-all duration-300 ${
                     activeIndex === index
                       ? "bg-amber-500 w-4"
                       : "bg-zinc-400 dark:bg-zinc-600"
                   }`}
-                  // --- END OF FIX ---
                   aria-label={`Go to product ${index + 1}`}
                 />
               ))}
             </div>
 
-            <div className="pointer-events-none absolute -bottom-6 h-6 w-full rounded-full blur-3xl opacity-40 bg-gradient-to-r from-amber-200 to-transparent"></div>
+            <div className="pointer-events-none absolute -bottom-6 h-6 w-full rounded-full blur-3xl opacity-40 bg-linear-to-r from-amber-200 to-transparent"></div>
           </div>
         </div>
       </div>

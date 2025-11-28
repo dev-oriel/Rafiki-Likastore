@@ -1,13 +1,14 @@
 import express from "express";
 import upload from "../config/multer.config.js";
-import { protect, admin } from "../middleware/auth.middleware.js"; // Ensure admins only
+import { protect } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
 // @route   POST /api/upload
 // @desc    Upload a file to Cloudinary
-// @access  Private/Admin
-router.post("/", protect, admin, upload.single("avatar"), (req, res) => {
+// @access  Private (Logged in users)
+// FIX: Removed 'admin' middleware so regular users can upload avatars
+router.post("/", protect, upload.single("avatar"), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).send({ message: "Please upload a file" });
