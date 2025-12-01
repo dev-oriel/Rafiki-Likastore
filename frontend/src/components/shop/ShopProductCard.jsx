@@ -43,8 +43,8 @@ const ShopProductCard = ({ product }) => {
 
   return (
     <article className="group relative flex flex-col h-full rounded-2xl bg-white dark:bg-zinc-900/40 shadow-sm border border-zinc-100 dark:border-zinc-800 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-      {/* Image Container: aspect-square ensures perfect scaling on grid-cols-2 */}
-      <div className="relative w-full aspect-square bg-zinc-50 dark:bg-zinc-800/50 flex items-center justify-center p-4 overflow-hidden">
+      {/* Image Container: Reduced padding (p-3) to make image look bigger/card wider */}
+      <div className="relative w-full aspect-square bg-zinc-50 dark:bg-zinc-800/50 flex items-center justify-center p-3 overflow-hidden">
         <Link
           to={`/product/${product._id}`}
           className="w-full h-full flex items-center justify-center"
@@ -61,7 +61,7 @@ const ShopProductCard = ({ product }) => {
           />
         </Link>
 
-        {/* On Offer Badge (Amber) */}
+        {/* On Offer Badge */}
         {product.isOnSale && (
           <span className="absolute left-2 top-2 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wide shadow-sm z-10">
             On Offer
@@ -97,37 +97,36 @@ const ShopProductCard = ({ product }) => {
         </button>
       </div>
 
-      {/* Details */}
+      {/* Details Container - Reduced padding to tighten the look */}
       <Link
         to={`/product/${product._id}`}
-        className="flex flex-col grow p-3 sm:p-4"
+        className="flex flex-col flex-grow p-3"
       >
-        <div className="mb-2">
-          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 line-clamp-2 leading-tight min-h-[2.5em]">
-            {product.name}
-          </h3>
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 font-medium uppercase tracking-wider">
+        <div className="mb-1">
+          <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider mb-0.5">
             {product.category}
           </p>
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 line-clamp-2 leading-tight">
+            {product.name}
+          </h3>
         </div>
 
-        <div className="mt-auto flex items-end justify-between gap-2">
-          <div>
-            {product.isOnSale && product.discountedPrice > 0 ? (
-              <div className="flex flex-col leading-none">
-                <span className="text-[10px] text-zinc-400 line-through">
-                  {formatCurrency(product.price)}
-                </span>
-                <span className="text-sm sm:text-base font-extrabold text-amber-600 dark:text-amber-500">
-                  {formatCurrency(product.discountedPrice)}
-                </span>
-              </div>
-            ) : (
-              <div className="text-sm sm:text-base font-extrabold text-zinc-900 dark:text-zinc-100">
+        {/* Price Section - Removed Rating, pushed to bottom */}
+        <div className="mt-auto pt-1">
+          {product.isOnSale && product.discountedPrice > 0 ? (
+            <div className="flex flex-col leading-none">
+              <span className="text-[10px] text-zinc-400 line-through">
                 {formatCurrency(product.price)}
-              </div>
-            )}
-          </div>
+              </span>
+              <span className="text-sm sm:text-base font-extrabold text-amber-600 dark:text-amber-500">
+                {formatCurrency(product.discountedPrice)}
+              </span>
+            </div>
+          ) : (
+            <div className="text-sm sm:text-base font-extrabold text-zinc-900 dark:text-zinc-100">
+              {formatCurrency(product.price)}
+            </div>
+          )}
         </div>
       </Link>
     </article>
