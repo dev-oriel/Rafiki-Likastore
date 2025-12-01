@@ -40,19 +40,15 @@ export default function Hero() {
     );
   };
 
-  // Loading View
   if (loading) {
     return (
-      <section className="relative w-full h-[500px] overflow-hidden bg-zinc-100 dark:bg-zinc-900 flex justify-center items-center">
+      <section className="relative w-full h-[80vh] min-h-[500px] overflow-hidden bg-zinc-50 dark:bg-zinc-900 flex justify-center items-center">
         <Loader className="animate-spin text-amber-500 h-12 w-12" />
       </section>
     );
   }
 
-  // Empty View (if fetch fails or no products)
-  if (heroProducts.length === 0) {
-    return null;
-  }
+  if (heroProducts.length === 0) return null;
 
   const currentProduct = heroProducts[activeIndex];
   const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
@@ -67,155 +63,164 @@ export default function Hero() {
   };
 
   return (
-    <section
-      aria-labelledby="hero-heading"
-      className="relative w-full overflow-hidden bg-linear-to-br from-amber-50 via-white to-amber-100 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900"
-    >
-      <div className="container mx-auto px-6 py-16 sm:py-20 lg:py-28">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:items-center">
-          <div className="flex flex-col gap-6 text-center lg:text-left">
-            <h1
-              id="hero-heading"
-              className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl md:text-6xl"
-            >
-              <span className="block">Your Friendly Neighborhood</span>
-              <span className="block bg-linear-to-r from-amber-600 via-amber-500 to-amber-400 bg-clip-text text-transparent">
-                Liquor Stop — delivered fast.
-              </span>
-            </h1>
+    <section className="relative w-full overflow-hidden pt-12 lg:pt-0 bg-zinc-50 dark:bg-zinc-900 selection:bg-amber-500 selection:text-white">
+      {/* --- Ambient Background Blobs (Fixed positioning for visual anchor) --- */}
+      <div className="absolute top-0 right-0 lg:right-0 w-[400px] h-[400px] lg:w-[600px] lg:h-[600px] bg-amber-400/20 rounded-full blur-[100px] pointer-events-none mix-blend-multiply dark:mix-blend-screen animate-pulse" />
+      <div className="absolute bottom-0 left-0 w-[300px] h-[300px] lg:w-[500px] lg:h-[500px] bg-orange-500/10 rounded-full blur-[80px] pointer-events-none mix-blend-multiply dark:mix-blend-screen" />
 
-            <p className="mx-auto max-w-xl text-base text-zinc-600 dark:text-zinc-300 md:text-lg lg:mx-0">
-              Affordable drinks from trusted brands students love. Fast
-              delivery, transparent pricing — and a rewards program that
-              actually rewards you.
-            </p>
+      {/* --- MAIN CONTAINER --- */}
+      {/* Grid: 1 column on mobile (stacked), 2 columns on desktop (side-by-side) */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center min-h-[calc(100vh-80px)] lg:min-h-[700px]">
+          {/* --- LEFT COLUMN: Text Content --- */}
+          {/* Mobile: Centered text. Desktop: Left-aligned text. */}
+          <div className="flex flex-col gap-6 lg:gap-8 text-center lg:text-left pt-8 lg:pt-0">
+            <div className="space-y-4 lg:space-y-6">
+              {/* Badge */}
+              <div className="inline-flex items-center mx-auto lg:mx-0 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider backdrop-blur-sm">
+                <span className="material-symbols-outlined text-amber-500 text-lg mr-1.5">
+                  bolt
+                </span>
+                Fast Delivery in Kabarak
+              </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              {/* Heading */}
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-zinc-900 dark:text-white leading-[1.1]">
+                <span className="block">Your Friendly</span>
+                <span className="block">Neighborhood</span>
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-600">
+                  Liquor Stop.
+                </span>
+              </h1>
+
+              {/* Description */}
+              <p className="mx-auto lg:mx-0 max-w-lg text-lg text-zinc-600 dark:text-zinc-300 leading-relaxed">
+                Affordable drinks from trusted brands students love. Transparent
+                pricing, student rewards, and delivery faster than your next
+                class.
+              </p>
+            </div>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link
                 to="/shop"
-                className="inline-flex items-center justify-center rounded-full bg-amber-500 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-[1.03] focus:outline-none focus:ring-4 focus:ring-amber-300"
-                aria-label="Shop now — open shop page"
+                className="inline-flex items-center justify-center rounded-full bg-amber-500 px-8 py-4 text-base font-bold text-white shadow-lg shadow-amber-500/30 transition-all hover:bg-amber-600 hover:scale-105 hover:shadow-amber-500/50 focus:outline-none focus:ring-4 focus:ring-amber-300"
               >
                 Shop Now
-                <svg
-                  className="ml-3 h-4 w-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  aria-hidden
-                >
-                  <path
-                    d="M5 12h14"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12 5l7 7-7 7"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <span className="material-symbols-outlined ml-2 text-xl">
+                  shopping_bag
+                </span>
               </Link>
               <Link
                 to="/offers"
-                className="mx-auto inline-flex items-center justify-center rounded-full border border-amber-200 px-5 py-3 text-sm font-semibold text-amber-700 shadow-sm bg-white/60 backdrop-blur-sm transition hover:bg-amber-50 sm:mx-0 dark:bg-zinc-800/60 dark:text-amber-400"
-                aria-label="See current offers"
+                className="inline-flex items-center justify-center rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-8 py-4 text-base font-bold text-zinc-700 dark:text-zinc-200 shadow-sm transition-all hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-amber-300"
               >
                 View Offers
               </Link>
             </div>
 
-            <ul className="mt-4 flex flex-wrap gap-3 text-sm text-zinc-500 dark:text-zinc-400">
-              <li className="inline-flex items-center gap-2">
-                <span className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-amber-800 font-medium">
-                  Free delivery •
+            {/* Trust Indicators (Hidden on very small mobile to save space, visible on sm+) */}
+            <div className="hidden sm:flex items-center justify-center lg:justify-start gap-6 text-sm font-medium text-zinc-500 dark:text-zinc-400 pt-2">
+              <div className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-amber-500 text-lg">
+                  check_circle
                 </span>
-              </li>
-              <li className="inline-flex items-center gap-2">
-                <span className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-amber-800 font-medium">
-                  Trusted brands •
+                Trusted Brands
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-amber-500 text-lg">
+                  bolt
                 </span>
-              </li>
-              <li className="inline-flex items-center gap-2">
-                <span className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-amber-800 font-medium">
-                  Student discounts
-                </span>
-              </li>
-            </ul>
+                Instant Delivery
+              </div>
+            </div>
           </div>
 
-          {/* Dynamic Image Display with Toggle */}
-          <div className="relative flex min-h-[400px] items-center justify-center lg:min-h-[500px]">
-            <button
-              onClick={prevProduct}
-              aria-label="Previous product"
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-white/70 dark:bg-zinc-800/70 backdrop-blur-sm shadow-md transition hover:scale-105"
-            >
-              <ChevronLeft className="h-6 w-6 text-zinc-700 dark:text-zinc-300" />
-            </button>
-            <button
-              onClick={nextProduct}
-              aria-label="Next product"
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-white/70 dark:bg-zinc-800/70 backdrop-blur-sm shadow-md transition hover:scale-105"
-            >
-              <ChevronRight className="h-6 w-6 text-zinc-700 dark:text-zinc-300" />
-            </button>
+          {/* --- RIGHT COLUMN: The Floating Product Stage --- */}
+          {/* Mobile: Below text. Desktop: Right side. */}
+          <div className="relative flex justify-center items-center perspective-1000 w-full h-[450px] sm:h-[550px] lg:h-[700px]">
+            {/* Background Circle */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] sm:w-[400px] sm:h-[400px] lg:w-[500px] lg:h-[500px] bg-white dark:bg-zinc-800 rounded-full shadow-2xl shadow-amber-500/10 border border-zinc-100 dark:border-zinc-700/50 z-0" />
 
-            <div className="relative w-full h-full flex justify-center items-center">
-              <div className="relative z-10 p-6 rounded-2xl bg-white/60 shadow-2xl backdrop-blur-md dark:bg-zinc-900/60 flex flex-col justify-end min-h-[300px] lg:min-h-[400px] w-80 sm:w-96">
-                <img
-                  src={imageUrl}
-                  alt={currentProduct.name}
-                  className="absolute left-1/2 top-20 -translate-x-1/2 -translate-y-1/2 h-full object-contain max-h-[500px] w-auto transition-transform duration-300 ease-in-out hover:scale-105 z-0 -rotate-12"
-                />
-                <div className="mt-auto relative z-10 bg-white/80 dark:bg-zinc-900/80 p-3 rounded-xl backdrop-blur-sm">
-                  <p className="text-xl font-medium text-zinc-800 dark:text-zinc-100">
-                    {currentProduct.name}
-                  </p>
-                  <p className="text-base text-zinc-500 dark:text-zinc-400">
-                    {currentProduct.volume || "750ml"} •{" "}
-                    {currentProduct.abv || "40% ABV"}
-                  </p>
-                  <div className="flex justify-between items-center mt-2">
-                    <p className="text-lg font-semibold text-amber-600">
-                      {formatCurrency(currentProduct.price)}
-                    </p>
-                    <button
-                      onClick={handleAddToCart}
-                      className="flex items-center justify-center rounded-full bg-amber-500 text-white p-2 shadow-md transition-transform hover:scale-110"
-                      title={`Add ${currentProduct.name} to cart`}
-                    >
-                      <span className="material-symbols-outlined text-lg">
-                        add_shopping_cart
-                      </span>
-                    </button>
-                  </div>
+            {/* The Bottle (Animated) */}
+            <div className="relative z-10 h-full w-full flex items-center justify-center animate-[float_6s_ease-in-out_infinite]">
+              <img
+                key={currentProduct._id}
+                src={imageUrl}
+                alt={currentProduct.name}
+                className="h-[80%] lg:h-[85%] w-auto object-contain drop-shadow-2xl transition-all duration-700 ease-out animate-in fade-in slide-in-from-bottom-8 zoom-in-95"
+                style={{
+                  filter: "drop-shadow(0 25px 50px rgba(0,0,0,0.25))",
+                }}
+              />
+            </div>
+
+            {/* Glassmorphism Product Card (Floating) */}
+            <div className="absolute bottom-4 right-4 sm:bottom-12 sm:right-12 lg:bottom-20 lg:right-20 z-20 backdrop-blur-md bg-white/80 dark:bg-zinc-900/80 border border-white/50 dark:border-zinc-700/50 p-4 rounded-2xl shadow-xl shadow-black/5 max-w-[200px] sm:max-w-[240px] transition-transform hover:scale-105">
+              <div className="flex flex-col gap-1">
+                <h3 className="font-bold text-zinc-900 dark:text-zinc-100 text-base sm:text-lg leading-tight line-clamp-2">
+                  {currentProduct.name}
+                </h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium uppercase tracking-wide">
+                  {currentProduct.volume || "750ml"} •{" "}
+                  {currentProduct.abv || "40% ABV"}
+                </p>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <span className="text-lg sm:text-xl font-extrabold text-amber-600 dark:text-amber-500">
+                    {formatCurrency(currentProduct.price)}
+                  </span>
+                  <button
+                    onClick={handleAddToCart}
+                    className="h-8 w-8 sm:h-10 sm:w-10 flex items-center justify-center rounded-full bg-amber-500 text-white shadow-lg shadow-amber-500/40 hover:bg-amber-600 hover:scale-110 active:scale-95 transition-all"
+                  >
+                    <span className="material-symbols-outlined text-lg sm:text-xl">
+                      add
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
 
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex gap-2">
+            {/* Navigation Arrows */}
+            <button
+              onClick={prevProduct}
+              className="absolute left-0 sm:left-4 lg:left-0 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white/40 dark:bg-black/20 hover:bg-white dark:hover:bg-zinc-800 backdrop-blur-md border border-white/20 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 transition-all hover:scale-110 hover:shadow-lg"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <button
+              onClick={nextProduct}
+              className="absolute right-0 sm:right-4 lg:right-0 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white/40 dark:bg-black/20 hover:bg-white dark:hover:bg-zinc-800 backdrop-blur-md border border-white/20 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 transition-all hover:scale-110 hover:shadow-lg"
+            >
+              <ChevronRight size={24} />
+            </button>
+
+            {/* Pagination Dots */}
+            <div className="absolute bottom-0 lg:bottom-10 left-1/2 -translate-x-1/2 flex gap-2">
               {heroProducts.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setActiveIndex(index)}
-                  className={`h-2 w-2 rounded-full transition-all duration-300 ${
+                  className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 ${
                     activeIndex === index
-                      ? "bg-amber-500 w-4"
-                      : "bg-zinc-400 dark:bg-zinc-600"
+                      ? "w-8 bg-amber-500"
+                      : "w-2 bg-zinc-300 dark:bg-zinc-700 hover:bg-amber-300"
                   }`}
-                  aria-label={`Go to product ${index + 1}`}
                 />
               ))}
             </div>
-
-            <div className="pointer-events-none absolute -bottom-6 h-6 w-full rounded-full blur-3xl opacity-40 bg-linear-to-r from-amber-200 to-transparent"></div>
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+          100% { transform: translateY(0px); }
+        }
+      `}</style>
     </section>
   );
 }
