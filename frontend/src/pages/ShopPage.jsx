@@ -26,10 +26,12 @@ const ShopPage = () => {
   const [searchTerm, setSearchTerm] = useState(
     searchParams.get("keyword") || ""
   );
-  // Read 'type' from URL to match backend
-  const [selectedTypes, setSelectedTypes] = useState(
-    searchParams.get("type")?.split(",") || []
+
+  // FIX: Changed 'type' to 'category' to match the backend expectations
+  const [selectedCategories, setSelectedCategories] = useState(
+    searchParams.get("category")?.split(",") || []
   );
+
   const [priceRange, setPriceRange] = useState([
     Number(searchParams.get("price[gte]")) || 0,
     Number(searchParams.get("price[lte]")) || meta.maxPrice,
@@ -45,6 +47,7 @@ const ShopPage = () => {
         setLoadingMeta(true);
         const { data } = await api.get("/products/meta");
         setMeta(data);
+        // Only set default max price if not already in URL
         if (!searchParams.get("price[lte]")) {
           setPriceRange((prev) => [prev[0], data.maxPrice]);
         }
@@ -65,9 +68,9 @@ const ShopPage = () => {
 
       if (debouncedSearchTerm) params.append("keyword", debouncedSearchTerm);
 
-      // Send 'type' to match the backend controller
-      if (selectedTypes.length > 0)
-        params.append("type", selectedTypes.join(","));
+      // --- FIX: Sending 'category' instead of 'type' ---
+      if (selectedCategories.length > 0)
+        params.append("category", selectedCategories.join(","));
 
       // Send price params
       if (priceRange[0] > 0) params.append("price[gte]", priceRange[0]);
@@ -79,12 +82,16 @@ const ShopPage = () => {
       // Update URL bar
       const displayParams = new URLSearchParams();
       if (searchTerm) displayParams.set("keyword", searchTerm);
-      if (selectedTypes.length > 0)
-        displayParams.set("type", selectedTypes.join(","));
+
+      // FIX: Update URL to say 'category'
+      if (selectedCategories.length > 0)
+        displayParams.set("category", selectedCategories.join(","));
+
       if (priceRange[0] > 0) displayParams.set("price[gte]", priceRange[0]);
       if (priceRange[1] < meta.maxPrice)
         displayParams.set("price[lte]", priceRange[1]);
       if (page > 1) displayParams.set("pageNumber", page);
+
       setSearchParams(displayParams, { replace: true });
 
       // Fetch from backend
@@ -102,7 +109,7 @@ const ShopPage = () => {
   }, [
     page,
     debouncedSearchTerm,
-    selectedTypes,
+    selectedCategories, // Updated dependency
     priceRange,
     setSearchParams,
     searchTerm,
@@ -112,20 +119,20 @@ const ShopPage = () => {
   // Re-fetch when filters (or page) change
   useEffect(() => {
     fetchProducts();
-    setMobileFiltersOpen(false); // Close mobile filter panel
+    setMobileFiltersOpen(false);
   }, [fetchProducts]);
 
-  // Handlers to reset page to 1 on filter change
+  // Handlers
   const handleSearch = (term) => {
     setSearchTerm(term);
     setPage(1);
   };
 
-  const handleTypeChange = (type) => {
-    const newTypes = selectedTypes.includes(type)
-      ? selectedTypes.filter((t) => t !== type)
-      : [...selectedTypes, type];
-    setSelectedTypes(newTypes);
+  const handleCategoryChange = (category) => {
+    const newCategories = selectedCategories.includes(category)
+      ? selectedCategories.filter((c) => c !== category)
+      : [...selectedCategories, category];
+    setSelectedCategories(newCategories);
     setPage(1);
   };
 
@@ -142,14 +149,15 @@ const ShopPage = () => {
         productCount={count}
         onOpenFilters={() => setMobileFiltersOpen(true)}
       />
-      {/* Reduced py-10 to py-6 on mobile for less gap after header */}
+
       <main className="px-4 sm:px-6 lg:px-8 flex justify-center py-6 sm:py-10">
         <div className="flex w-full max-w-7xl gap-8">
           <Sidebar
             priceRange={priceRange}
             onPriceChange={handlePriceChange}
-            selectedTypes={selectedTypes}
-            onTypeChange={handleTypeChange}
+            // Passing updated props
+            selectedCategories={selectedCategories}
+            onCategoryChange={handleCategoryChange}
             categories={meta.categories}
             maxPrice={meta.maxPrice}
             loading={loadingMeta}

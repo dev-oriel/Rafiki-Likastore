@@ -128,16 +128,6 @@ const ShopProductCard = ({ product }) => {
               </div>
             )}
           </div>
-
-          <div className="flex items-center gap-0.5 text-xs text-zinc-500">
-            <span
-              className="material-symbols-outlined text-sm text-amber-500"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              star
-            </span>
-            <span>{(product.rating ?? 4.5).toFixed(1)}</span>
-          </div>
         </div>
       </Link>
     </article>

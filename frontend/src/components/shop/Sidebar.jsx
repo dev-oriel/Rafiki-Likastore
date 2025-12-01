@@ -5,8 +5,8 @@ import { formatCurrency } from "../../utils/formatCurrency";
 const SidebarContent = ({
   priceRange,
   onPriceChange,
-  selectedTypes,
-  onTypeChange,
+  selectedCategories, 
+  onCategoryChange, 
   categories,
   maxPrice,
   loading,
@@ -59,11 +59,11 @@ const SidebarContent = ({
             Loading categories...
           </div>
         ) : (
-          categories.map((type) => (
+          categories.map((category) => (
             <label
-              key={type}
+              key={category}
               className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all border ${
-                selectedTypes.includes(type)
+                selectedCategories.includes(category)
                   ? "bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30"
                   : "bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 hover:border-amber-200 dark:hover:border-zinc-700"
               }`}
@@ -71,19 +71,19 @@ const SidebarContent = ({
               <div className="relative flex items-center">
                 <input
                   type="checkbox"
-                  checked={selectedTypes.includes(type)}
-                  onChange={() => onTypeChange(type)}
+                  checked={selectedCategories.includes(category)}
+                  onChange={() => onCategoryChange(category)}
                   className="peer h-4 w-4 rounded border-zinc-300 dark:border-zinc-600 text-amber-500 focus:ring-amber-500 bg-transparent"
                 />
               </div>
               <span
                 className={`text-sm font-medium ${
-                  selectedTypes.includes(type)
+                  selectedCategories.includes(category)
                     ? "text-amber-900 dark:text-amber-100"
                     : "text-zinc-700 dark:text-zinc-300"
                 }`}
               >
-                {type}
+                {category}
               </span>
             </label>
           ))
@@ -96,8 +96,8 @@ const SidebarContent = ({
 const Sidebar = ({
   priceRange,
   onPriceChange,
-  selectedTypes,
-  onTypeChange,
+  selectedCategories, // Updated prop name
+  onCategoryChange, // Updated prop name
   categories = [],
   maxPrice = 5000,
   loading = false,
@@ -112,8 +112,8 @@ const Sidebar = ({
           <SidebarContent
             priceRange={priceRange}
             onPriceChange={onPriceChange}
-            selectedTypes={selectedTypes}
-            onTypeChange={onTypeChange}
+            selectedCategories={selectedCategories}
+            onCategoryChange={onCategoryChange}
             categories={categories}
             maxPrice={maxPrice}
             loading={loading}
@@ -127,16 +127,14 @@ const Sidebar = ({
           mobileOpen ? "pointer-events-auto" : "pointer-events-none"
         }`}
       >
-        {/* Backdrop */}
         <div
-          className={`absolute inset-0 bg-black/60 transition-opacity duration-300 ${
+          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
             mobileOpen ? "opacity-100" : "opacity-0"
           }`}
           onClick={onCloseMobile}
           aria-hidden="true"
         />
 
-        {/* Panel */}
         <div
           className={`absolute right-0 top-0 bottom-0 w-[85vw] max-w-sm bg-white dark:bg-zinc-950 p-6 shadow-2xl transform transition-transform duration-300 ease-out ${
             mobileOpen ? "translate-x-0" : "translate-x-full"
@@ -155,15 +153,14 @@ const Sidebar = ({
             <SidebarContent
               priceRange={priceRange}
               onPriceChange={onPriceChange}
-              selectedTypes={selectedTypes}
-              onTypeChange={onTypeChange}
+              selectedCategories={selectedCategories}
+              onCategoryChange={onCategoryChange}
               categories={categories}
               maxPrice={maxPrice}
               loading={loading}
             />
           </div>
 
-          {/* Apply Button for Mobile */}
           <div className="absolute bottom-0 left-0 right-0 p-4 bg-white dark:bg-zinc-950 border-t border-zinc-100 dark:border-zinc-800">
             <button
               onClick={onCloseMobile}
