@@ -1,6 +1,6 @@
 import React from "react";
 import { useCart } from "../../context/CartContext";
-import { useAuth } from "../../context/AuthContext"; // 1. Import useAuth
+import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { formatCurrency } from "../../utils/formatCurrency";
@@ -12,9 +12,8 @@ const PLACEHOLDER = "/placeholder-400x300.png";
 
 const ShopProductCard = ({ product }) => {
   const { addToCart } = useCart();
-  const { user, toggleFavorite } = useAuth(); // 2. Get user and toggle function
+  const { user, toggleFavorite } = useAuth();
 
-  // 3. Check if this product is in the user's favorites
   const isFavorited = user?.favorites?.some(
     (fav) => (fav._id || fav) === product._id
   );
@@ -26,7 +25,6 @@ const ShopProductCard = ({ product }) => {
     toast.success(`${product.name} added to cart!`);
   };
 
-  // 4. New handler for toggling favorite
   const handleToggleFavorite = (e) => {
     e.stopPropagation();
     e.preventDefault();
@@ -44,33 +42,39 @@ const ShopProductCard = ({ product }) => {
       : `${API_BASE_URL}${rawImage}`;
 
   return (
-    <article className="group relative flex flex-col rounded-2xl bg-white dark:bg-zinc-900/40 shadow-sm hover:shadow-lg transition-transform transform hover:-translate-y-1 p-4 overflow-hidden">
-      <Link to={`/product/${product._id}`} className="block">
-        <div className="relative w-full h-56 rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+    <article className="group relative flex flex-col h-full rounded-2xl bg-white dark:bg-zinc-900/40 shadow-sm border border-zinc-100 dark:border-zinc-800 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+      {/* Image Container: aspect-square ensures perfect scaling on grid-cols-2 */}
+      <div className="relative w-full aspect-square bg-zinc-50 dark:bg-zinc-800/50 flex items-center justify-center p-4 overflow-hidden">
+        <Link
+          to={`/product/${product._id}`}
+          className="w-full h-full flex items-center justify-center"
+        >
           <img
             src={imageUrl || PLACEHOLDER}
             alt={product.name}
             loading="lazy"
-            className="w-full h-full object-contain transition-transform group-hover:scale-105"
+            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
             onError={(e) => {
               e.currentTarget.onerror = null;
               e.currentTarget.src = PLACEHOLDER;
             }}
           />
+        </Link>
 
-          {product.isOnSale && (
-            <span className="absolute left-3 top-3 rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold text-white">
-              On Offer
-            </span>
-          )}
+        {/* On Offer Badge (Amber) */}
+        {product.isOnSale && (
+          <span className="absolute left-2 top-2 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wide shadow-sm z-10">
+            On Offer
+          </span>
+        )}
 
-          {/* 5. Add Favorite button */}
+        {/* Action Buttons: Visible on Mobile, Hover on Desktop */}
+        <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
+          {/* Favorite */}
           {user && (
             <button
               onClick={handleToggleFavorite}
-              aria-label="Toggle favorite"
-              className="absolute right-12 top-3 z-10 inline-flex items-center justify-center rounded-full bg-white/80 dark:bg-zinc-900/80 p-2 opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-amber-400 transition-opacity"
-              title="Toggle favorite"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 dark:bg-zinc-800/90 shadow-sm backdrop-blur-sm text-zinc-400 hover:text-amber-500 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
             >
               <span
                 className="material-symbols-outlined text-lg"
@@ -78,52 +82,61 @@ const ShopProductCard = ({ product }) => {
                   fontVariationSettings: `'FILL' ${isFavorited ? 1 : 0}`,
                 }}
               >
-                {isFavorited ? "favorite" : "favorite_border"}
+                favorite
               </span>
             </button>
           )}
-
-          <button
-            onClick={handleAddToCart}
-            aria-label={`Add ${product.name} to cart`}
-            className="absolute right-3 top-3 z-10 inline-flex items-center justify-center rounded-full bg-amber-500 text-white p-2 opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-amber-400 transition-opacity"
-            title={`Add ${product.name} to cart`}
-          >
-            <span className="material-symbols-outlined text-lg">add</span>
-          </button>
         </div>
 
-        <div className="mt-4 flex flex-col gap-2">
-          <h3 className="text-base font-semibold line-clamp-2 text-zinc-900 dark:text-zinc-100 h-10">
+        {/* Add Cart Button (Bottom Right) */}
+        <button
+          onClick={handleAddToCart}
+          className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-amber-500 text-white shadow-md transition-all duration-300 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:scale-110 hover:bg-amber-600 z-10"
+        >
+          <span className="material-symbols-outlined text-xl">add</span>
+        </button>
+      </div>
+
+      {/* Details */}
+      <Link
+        to={`/product/${product._id}`}
+        className="flex flex-col flex-grow p-3 sm:p-4"
+      >
+        <div className="mb-2">
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 line-clamp-2 leading-tight min-h-[2.5em]">
             {product.name}
           </h3>
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 font-medium uppercase tracking-wider">
+            {product.category}
+          </p>
+        </div>
 
-          <div className="flex items-center justify-between gap-3">
-            {/* (Price display - no change) */}
-            <div>
-              {product.isOnSale && product.discountedPrice > 0 ? (
-                <>
-                  <div className="text-sm font-bold text-amber-600 dark:text-amber-500">
-                    {formatCurrency(product.discountedPrice)}
-                  </div>
-                  <div className="text-xs line-through text-zinc-400">
-                    {formatCurrency(product.price)}
-                  </div>
-                </>
-              ) : (
-                <div className="text-sm font-bold text-zinc-800 dark:text-zinc-200">
+        <div className="mt-auto flex items-end justify-between gap-2">
+          <div>
+            {product.isOnSale && product.discountedPrice > 0 ? (
+              <div className="flex flex-col leading-none">
+                <span className="text-[10px] text-zinc-400 line-through">
                   {formatCurrency(product.price)}
-                </div>
-              )}
-            </div>
+                </span>
+                <span className="text-sm sm:text-base font-extrabold text-amber-600 dark:text-amber-500">
+                  {formatCurrency(product.discountedPrice)}
+                </span>
+              </div>
+            ) : (
+              <div className="text-sm sm:text-base font-extrabold text-zinc-900 dark:text-zinc-100">
+                {formatCurrency(product.price)}
+              </div>
+            )}
+          </div>
 
-            {/* (Rating display - no change) */}
-            <div className="flex items-center gap-1 text-sm text-zinc-500">
-              <span>{(product.rating ?? 4.5).toFixed(1)}</span>
-              <span className="material-symbols-outlined text-amber-500 text-base">
-                star
-              </span>
-            </div>
+          <div className="flex items-center gap-0.5 text-xs text-zinc-500">
+            <span
+              className="material-symbols-outlined text-sm text-amber-500"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              star
+            </span>
+            <span>{(product.rating ?? 4.5).toFixed(1)}</span>
           </div>
         </div>
       </Link>

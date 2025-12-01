@@ -65,15 +65,12 @@ const ShopPage = () => {
 
       if (debouncedSearchTerm) params.append("keyword", debouncedSearchTerm);
 
-      // --- THIS IS THE FIX ---
       // Send 'type' to match the backend controller
       if (selectedTypes.length > 0)
         params.append("type", selectedTypes.join(","));
-      // --- END OF FIX ---
 
-      // Send price params (this logic is now correct)
+      // Send price params
       if (priceRange[0] > 0) params.append("price[gte]", priceRange[0]);
-      // Only send lte if it's not the max (cleaner URL)
       if (priceRange[1] < meta.maxPrice)
         params.append("price[lte]", priceRange[1]);
 
@@ -83,7 +80,7 @@ const ShopPage = () => {
       const displayParams = new URLSearchParams();
       if (searchTerm) displayParams.set("keyword", searchTerm);
       if (selectedTypes.length > 0)
-        displayParams.set("type", selectedTypes.join(",")); // Also update here
+        displayParams.set("type", selectedTypes.join(","));
       if (priceRange[0] > 0) displayParams.set("price[gte]", priceRange[0]);
       if (priceRange[1] < meta.maxPrice)
         displayParams.set("price[lte]", priceRange[1]);
@@ -145,16 +142,17 @@ const ShopPage = () => {
         productCount={count}
         onOpenFilters={() => setMobileFiltersOpen(true)}
       />
-      <main className="px-4 sm:px-6 lg:px-8 flex justify-center py-10">
+      {/* Reduced py-10 to py-6 on mobile for less gap after header */}
+      <main className="px-4 sm:px-6 lg:px-8 flex justify-center py-6 sm:py-10">
         <div className="flex w-full max-w-7xl gap-8">
           <Sidebar
             priceRange={priceRange}
             onPriceChange={handlePriceChange}
             selectedTypes={selectedTypes}
             onTypeChange={handleTypeChange}
-            categories={meta.categories} // Pass dynamic categories
-            maxPrice={meta.maxPrice} // Pass dynamic max price
-            loading={loadingMeta} // Pass loading state
+            categories={meta.categories}
+            maxPrice={meta.maxPrice}
+            loading={loadingMeta}
             mobileOpen={mobileFiltersOpen}
             onCloseMobile={() => setMobileFiltersOpen(false)}
           />
