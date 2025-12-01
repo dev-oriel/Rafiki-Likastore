@@ -7,7 +7,7 @@ const ShopHeader = ({ onSearch, initialTerm, productCount, onOpenFilters }) => {
   };
 
   return (
-    <header className="sticky top-[64px] sm:top-[80px] z-20 bg-zinc-50/95 dark:bg-zinc-950/95 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 transition-all duration-300">
+    <header className="sticky top-16 sm:top-20 z-20 bg-zinc-50/95 dark:bg-zinc-950/95 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 transition-all duration-300">
       <div className="px-4 sm:px-8 md:px-12 lg:px-8 xl:px-8 py-4 sm:py-5 max-w-7xl mx-auto">
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-y-2">

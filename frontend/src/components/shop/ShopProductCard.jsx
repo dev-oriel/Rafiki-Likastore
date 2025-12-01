@@ -100,7 +100,7 @@ const ShopProductCard = ({ product }) => {
       {/* Details */}
       <Link
         to={`/product/${product._id}`}
-        className="flex flex-col flex-grow p-3 sm:p-4"
+        className="flex flex-col grow p-3 sm:p-4"
       >
         <div className="mb-2">
           <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 line-clamp-2 leading-tight min-h-[2.5em]">
