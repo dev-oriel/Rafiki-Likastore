@@ -5,12 +5,15 @@ const ProductInfoTabs = ({ product }) => {
   const [activeTab, setActiveTab] = useState("description");
 
   return (
-    <div className="mt-16 md:mt-24">
+    <div className="mt-10 md:mt-24">
       <div className="border-b border-zinc-200 dark:border-zinc-800">
-        <nav aria-label="Tabs" className="-mb-px flex space-x-8">
+        <nav
+          aria-label="Tabs"
+          className="-mb-px flex space-x-6 sm:space-x-8 overflow-x-auto"
+        >
           <button
             onClick={() => setActiveTab("description")}
-            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base ${
+            className={`whitespace-nowrap py-3 sm:py-4 px-1 border-b-2 font-medium text-sm sm:text-base transition-colors ${
               activeTab === "description"
                 ? "border-amber-500 text-amber-500"
                 : "border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:border-zinc-300 dark:hover:border-zinc-600"
@@ -20,7 +23,7 @@ const ProductInfoTabs = ({ product }) => {
           </button>
           <button
             onClick={() => setActiveTab("reviews")}
-            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base ${
+            className={`whitespace-nowrap py-3 sm:py-4 px-1 border-b-2 font-medium text-sm sm:text-base transition-colors ${
               activeTab === "reviews"
                 ? "border-amber-500 text-amber-500"
                 : "border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:border-zinc-300 dark:hover:border-zinc-600"
@@ -31,23 +34,23 @@ const ProductInfoTabs = ({ product }) => {
         </nav>
       </div>
 
-      <div className="py-8">
+      <div className="py-6 sm:py-8">
         {/* Description Tab Content */}
         {activeTab === "description" && (
-          // 2. Replaced hard-coded text with dynamic description
-          <div className="prose prose-zinc dark:prose-invert max-w-none">
-            {/* 3. 'whitespace-pre-line' respects line breaks from the textarea */}
+          // Added prose-sm for mobile, prose-base for larger screens
+          <div className="prose prose-sm sm:prose-base prose-zinc dark:prose-invert max-w-none">
+            {/* 'whitespace-pre-line' respects line breaks from the textarea */}
             <p className="whitespace-pre-line">{product.description}</p>
           </div>
         )}
 
-        {/* Reviews Tab Content (remains a placeholder) */}
+        {/* Reviews Tab Content */}
         {activeTab === "reviews" && (
           <div>
-            <h3 className="font-bold text-xl text-zinc-900 dark:text-white">
+            <h3 className="font-bold text-lg sm:text-xl text-zinc-900 dark:text-white">
               Customer Reviews
             </h3>
-            <p className="text-zinc-600 dark:text-zinc-400 mt-4">
+            <p className="text-zinc-600 dark:text-zinc-400 mt-4 text-sm sm:text-base">
               No reviews yet.
             </p>
             {/* You would map over reviews here */}

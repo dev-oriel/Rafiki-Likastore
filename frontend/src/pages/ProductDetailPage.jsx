@@ -8,53 +8,59 @@ import ProductInfoTabs from "../components/product/ProductInfoTabs";
 import { Loader } from "lucide-react";
 import { formatCurrency } from "../utils/formatCurrency";
 
-// (Breadcrumbs component - no change)
+// --- Components ---
+
 const Breadcrumbs = ({ category, name }) => (
-  <div className="flex flex-wrap gap-2 mb-8">
-    <Link
-      className="text-zinc-500 dark:text-zinc-400 hover:text-amber-500 text-sm font-medium"
-      to="/"
-    >
-      Home
-    </Link>
-    <span className="text-zinc-500 dark:text-zinc-400 text-sm font-medium">
-      /
-    </span>
-    <Link
-      className="text-zinc-500 dark:text-zinc-400 hover:text-amber-500 text-sm font-medium"
-      to="/shop"
-    >
-      Shop
-    </Link>
-    <span className="text-zinc-500 dark:text-zinc-400 text-sm font-medium">
-      /
-    </span>
-    <span className="text-zinc-900 dark:text-white text-sm font-medium">
-      {name}
-    </span>
-  </div>
+  <nav
+    aria-label="Breadcrumb"
+    className="mb-4 sm:mb-8 overflow-x-auto whitespace-nowrap pb-2"
+  >
+    <ol className="flex items-center gap-2">
+      <li>
+        <Link
+          className="text-zinc-500 dark:text-zinc-400 hover:text-amber-500 text-xs sm:text-sm font-medium transition-colors"
+          to="/"
+        >
+          Home
+        </Link>
+      </li>
+      <li className="text-zinc-400 text-xs sm:text-sm">/</li>
+      <li>
+        <Link
+          className="text-zinc-500 dark:text-zinc-400 hover:text-amber-500 text-xs sm:text-sm font-medium transition-colors"
+          to="/shop"
+        >
+          Shop
+        </Link>
+      </li>
+      <li className="text-zinc-400 text-xs sm:text-sm">/</li>
+      <li>
+        <span
+          className="text-zinc-900 dark:text-white text-xs sm:text-sm font-medium"
+          aria-current="page"
+        >
+          {name}
+        </span>
+      </li>
+    </ol>
+  </nav>
 );
 
-// (API_BASE_URL - no change)
 const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
-// (ProductImage component - no change)
 const ProductImage = ({ image, name }) => (
-  <div className="w-full aspect-[3/4] rounded-lg bg-white dark:bg-zinc-900/50 p-6 flex items-center justify-center relative group">
-    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4/5 h-2/5 bg-amber-500/20 blur-3xl rounded-full"></div>
-    <div
-      className="w-full h-full bg-center bg-no-repeat bg-contain transition-transform duration-300 group-hover:scale-110 z-10"
+  <div className="w-full aspect-square md:aspect-[3/4] rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 p-6 sm:p-8 flex items-center justify-center relative group overflow-hidden border border-zinc-100 dark:border-zinc-800">
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] bg-amber-500/10 blur-[60px] rounded-full pointer-events-none"></div>
+
+    <img
+      src={image.startsWith("http") ? image : API_BASE_URL + image}
       alt={name}
-      style={{
-        backgroundImage: `url("${
-          image.startsWith("http") ? image : API_BASE_URL + image
-        }")`,
-      }}
-    ></div>
+      className="relative z-10 w-full h-full object-contain drop-shadow-xl transition-transform duration-500 ease-out group-hover:scale-105"
+      style={{ filter: "drop-shadow(0 20px 20px rgba(0,0,0,0.15))" }}
+    />
   </div>
 );
 
-// (ProductDetails component - no change)
 const ProductDetails = ({ product }) => {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
@@ -65,131 +71,174 @@ const ProductDetails = ({ product }) => {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium uppercase tracking-wider">
+    <div className="flex flex-col gap-4 sm:gap-8">
+      {/* Header Info */}
+      <div className="space-y-1 sm:space-y-2">
+        <p className="text-amber-600 dark:text-amber-500 text-[10px] sm:text-sm font-bold uppercase tracking-widest">
           {product.category}
         </p>
-        <h1 className="text-zinc-900 dark:text-white text-4xl lg:text-5xl font-black leading-tight tracking-[-0.033em]">
+        <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-white leading-tight tracking-tight">
           {product.name}
         </h1>
       </div>
 
-      <div className="flex items-center gap-3">
+      {/* Rating & Reviews */}
+      <div className="flex flex-wrap items-center gap-2 sm:gap-4">
         <div className="flex gap-0.5">
-          <span
-            className="material-symbols-outlined text-amber-500"
-            style={{ fontVariationSettings: "'FILL' 1", fontSize: "20px" }}
-          >
-            star
-          </span>
-          <span
-            className="material-symbols-outlined text-amber-500"
-            style={{ fontVariationSettings: "'FILL' 1", fontSize: "20px" }}
-          >
-            star
-          </span>
-          <span
-            className="material-symbols-outlined text-amber-500"
-            style={{ fontVariationSettings: "'FILL' 1", fontSize: "20px" }}
-          >
-            star
-          </span>
-          <span
-            className="material-symbols-outlined text-amber-500"
-            style={{ fontVariationSettings: "'FILL' 1", fontSize: "20px" }}
-          >
-            star
-          </span>
-          <span
-            className="material-symbols-outlined text-amber-500/40"
-            style={{ fontSize: "20px" }}
-          >
-            star
-          </span>
+          {[1, 2, 3, 4, 5].map((star) => (
+            <span
+              key={star}
+              className={`material-symbols-outlined text-[18px] sm:text-[24px] ${
+                star <= (product.rating || 4.5)
+                  ? "text-amber-500 font-variation-fill"
+                  : "text-zinc-300 dark:text-zinc-600"
+              }`}
+              style={{
+                fontVariationSettings: `'FILL' ${
+                  star <= (product.rating || 4.5) ? 1 : 0
+                }`,
+              }}
+            >
+              star
+            </span>
+          ))}
         </div>
-        <span className="text-zinc-600 dark:text-zinc-400 text-sm font-medium">
-          4.5 (128 Reviews)
+        <span className="text-zinc-500 dark:text-zinc-400 text-xs sm:text-sm font-medium">
+          4.5 <span className="hidden sm:inline">(128 Reviews)</span>
         </span>
       </div>
 
-      <p className="text-zinc-900 dark:text-white text-5xl font-extrabold">
-        {formatCurrency(product.price)}
-      </p>
+      {/* Price */}
+      <div className="flex items-center gap-3 sm:gap-4">
+        <p className="text-2xl sm:text-5xl font-extrabold text-zinc-900 dark:text-white">
+          {formatCurrency(product.price)}
+        </p>
+        {product.isOnSale && (
+          <span className="rounded-full bg-amber-100 dark:bg-amber-500/20 px-3 py-1 text-[10px] sm:text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">
+            On Offer
+          </span>
+        )}
+      </div>
 
-      <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-prose">
+      <p className="text-sm sm:text-lg text-zinc-600 dark:text-zinc-300 leading-relaxed max-w-prose">
         {product.description}
       </p>
 
-      <div className="grid grid-cols-3 gap-4 border-t border-b border-zinc-200 dark:border-zinc-800 py-4">
-        <div className="flex flex-col items-center gap-1.5 text-center">
-          <span className="material-symbols-outlined text-zinc-500 dark:text-zinc-400 text-2xl">
-            category
+      {/* Info Grid */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 py-4 sm:py-6 border-t border-b border-zinc-100 dark:border-zinc-800/50">
+        <div className="flex flex-col items-center gap-1 sm:gap-2 text-center p-2 rounded-lg bg-zinc-50 dark:bg-zinc-800/50">
+          <span className="material-symbols-outlined text-zinc-400 text-xl sm:text-2xl">
+            local_bar
           </span>
-          <span className="text-xs text-zinc-500 dark:text-zinc-400">
-            Category
-          </span>
-          <span className="text-sm font-bold text-zinc-900 dark:text-white">
-            {product.category}
-          </span>
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">
+              Type
+            </span>
+            <span className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-white truncate max-w-[80px]">
+              {product.category}
+            </span>
+          </div>
         </div>
-        <div className="flex flex-col items-center gap-1.5 text-center">
-          <span className="material-symbols-outlined text-zinc-500 dark:text-zinc-400 text-2xl">
-            inventory_2
+        <div className="flex flex-col items-center gap-1 sm:gap-2 text-center p-2 rounded-lg bg-zinc-50 dark:bg-zinc-800/50">
+          <span
+            className={`material-symbols-outlined text-xl sm:text-2xl ${
+              product.countInStock > 0 ? "text-green-500" : "text-red-500"
+            }`}
+          >
+            {product.countInStock > 0 ? "check_circle" : "cancel"}
           </span>
-          <span className="text-xs text-zinc-500 dark:text-zinc-400">
-            In Stock
-          </span>
-          <span className="text-sm font-bold text-zinc-900 dark:text-white">
-            {product.countInStock}
-          </span>
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">
+              Status
+            </span>
+            <span
+              className={`text-xs sm:text-sm font-semibold ${
+                product.countInStock > 0
+                  ? "text-green-600 dark:text-green-400"
+                  : "text-red-600"
+              }`}
+            >
+              {product.countInStock > 0 ? "In Stock" : "Out of Stock"}
+            </span>
+          </div>
         </div>
-        <div className="flex flex-col items-center gap-1.5 text-center">
-          <span className="material-symbols-outlined text-zinc-500 dark:text-zinc-400 text-2xl">
-            local_shipping
+        <div className="flex flex-col items-center gap-1 sm:gap-2 text-center p-2 rounded-lg bg-zinc-50 dark:bg-zinc-800/50">
+          <span className="material-symbols-outlined text-amber-500 text-xl sm:text-2xl">
+            rocket_launch
           </span>
-          <span className="text-xs text-zinc-500 dark:text-zinc-400">
-            Delivery
-          </span>
-          <span className="text-sm font-bold text-zinc-900 dark:text-white">
-            Today
-          </span>
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">
+              Delivery
+            </span>
+            <span className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-white">
+              20 Mins
+            </span>
+          </div>
         </div>
       </div>
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex items-center rounded-full bg-gray-100 dark:bg-zinc-800 p-1">
+
+      {/* --- ACTIONS SECTION (Fix applied here) --- */}
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2">
+        {/* Quantity Selector */}
+        <div className="flex items-center justify-between sm:justify-start bg-zinc-100 dark:bg-zinc-800 rounded-full p-1.5 w-full sm:w-auto">
           <button
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            className="flex items-center justify-center size-10 rounded-full text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+            className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white dark:bg-zinc-700 text-zinc-500 shadow-sm transition-all active:scale-90 hover:text-amber-600"
+            disabled={product.countInStock === 0}
           >
-            -
+            <span className="material-symbols-outlined text-sm">remove</span>
           </button>
-          <input
-            className="w-12 text-center bg-transparent border-0 text-zinc-900 dark:text-white font-bold focus:ring-0"
-            type="text"
-            value={quantity}
-            readOnly
-          />
+          <span className="w-12 text-center font-bold text-base sm:text-lg text-zinc-900 dark:text-white">
+            {quantity}
+          </span>
           <button
-            onClick={() => setQuantity((q) => q + 1)}
-            className="flex items-center justify-center size-10 rounded-full text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+            onClick={() =>
+              setQuantity((q) => Math.min(product.countInStock, q + 1))
+            }
+            className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white dark:bg-zinc-700 text-zinc-500 shadow-sm transition-all active:scale-90 hover:text-amber-600"
+            disabled={product.countInStock === 0}
           >
-            +
+            <span className="material-symbols-outlined text-sm">add</span>
           </button>
         </div>
+
+        {/* Add to Cart Button - STYLING FIX */}
         <button
           onClick={handleAddToCart}
-          className="flex-1 flex items-center justify-center gap-3 rounded-full h-12 bg-amber-500 text-white text-base font-bold leading-normal tracking-wide hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20"
+          disabled={product.countInStock === 0}
+          className="
+            flex-1 
+            py-3.5 sm:py-4            /* Padding Y for better look */
+            rounded-full 
+            bg-amber-500 
+            text-white 
+            font-bold 
+            text-sm sm:text-lg        /* Smaller text on mobile */
+            shadow-lg shadow-amber-500/20 
+            hover:bg-amber-600 
+            hover:scale-[1.02] 
+            active:scale-[0.98] 
+            transition-all 
+            disabled:opacity-50 
+            disabled:cursor-not-allowed 
+            flex items-center justify-center gap-2
+          "
         >
-          <span className="material-symbols-outlined">add_shopping_cart</span>
-          Add to Cart
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: "20px" }} /* Smaller icon on mobile */
+          >
+            shopping_cart
+          </span>
+          {product.countInStock > 0 ? "Add to Cart" : "Out of Stock"}
         </button>
       </div>
     </div>
   );
 };
 
-// (Main Page Component)
+// --- Main Page ---
+
 const ProductDetailPage = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
@@ -214,14 +263,26 @@ const ProductDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-20">
-        <Loader className="animate-spin" />
+      <div className="min-h-[60vh] flex justify-center items-center">
+        <Loader className="animate-spin text-amber-500 w-10 h-10" />
       </div>
     );
   }
 
   if (error) {
-    return <div className="text-center py-20 text-red-500">{error}</div>;
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-center px-4">
+        <span className="material-symbols-outlined text-6xl text-zinc-300">
+          broken_image
+        </span>
+        <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
+          {error}
+        </h2>
+        <Link to="/shop" className="text-amber-500 font-medium hover:underline">
+          Return to Shop
+        </Link>
+      </div>
+    );
   }
 
   if (!product) {
@@ -229,23 +290,21 @@ const ProductDetailPage = () => {
   }
 
   return (
-    <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
+    <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 lg:py-16">
       <Breadcrumbs category={product.category} name={product.name} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-16 items-start mb-12 sm:mb-24">
         <ProductImage image={product.image} name={product.name} />
         <ProductDetails product={product} />
       </div>
 
-      {/* --- THIS IS THE FIX --- */}
-      {/* Pass the product object to the tabs component */}
-      <ProductInfoTabs product={product} />
-      {/* --- END OF FIX --- */}
-
-      <RelatedProducts
-        category={product.category}
-        currentProductId={product._id}
-      />
+      <div className="space-y-12 sm:space-y-24">
+        <ProductInfoTabs product={product} />
+        <RelatedProducts
+          category={product.category}
+          currentProductId={product._id}
+        />
+      </div>
     </main>
   );
 };
