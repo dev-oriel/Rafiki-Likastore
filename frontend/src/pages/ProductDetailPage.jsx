@@ -49,7 +49,7 @@ const Breadcrumbs = ({ category, name }) => (
 const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
 const ProductImage = ({ image, name }) => (
-  <div className="w-full aspect-square md:aspect-[3/4] rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 p-6 sm:p-8 flex items-center justify-center relative group overflow-hidden border border-zinc-100 dark:border-zinc-800">
+  <div className="w-full aspect-square md:aspect-3/4 rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 p-6 sm:p-8 flex items-center justify-center relative group overflow-hidden border border-zinc-100 dark:border-zinc-800">
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] bg-amber-500/10 blur-[60px] rounded-full pointer-events-none"></div>
 
     <img
@@ -134,7 +134,7 @@ const ProductDetails = ({ product }) => {
             <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">
               Type
             </span>
-            <span className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-white truncate max-w-[80px]">
+            <span className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-white truncate max-w-20">
               {product.category}
             </span>
           </div>
