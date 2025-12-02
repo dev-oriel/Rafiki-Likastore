@@ -167,10 +167,10 @@ const CartPreview = ({ onClose }) => {
               {/* Footer / Summary */}
               <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 backdrop-blur-sm">
                 <div className="flex justify-between items-end mb-4">
-                  <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                  <span className=" text-sm font-medium text-zinc-500 dark:text-zinc-400">
                     Subtotal
                   </span>
-                  <span className="text-xl font-black text-zinc-900 dark:text-white">
+                  <span className=" text-sm sm:text-sm font-black text-zinc-900 dark:text-white">
                     {formatCurrency(subtotal)}
                   </span>
                 </div>
