@@ -28,8 +28,7 @@ const AddressesCard = () => {
       if (typeof refreshUser === "function") await refreshUser();
       toast.success(`Address ${action} successfully.`);
     } catch (err) {
-      const msg = err?.response?.data?.message || "Failed to save addresses";
-      toast.error(msg);
+      toast.error(err?.response?.data?.message || "Failed to save addresses");
     } finally {
       setLoading(false);
     }
@@ -70,58 +69,52 @@ const AddressesCard = () => {
 
   return (
     <div
-      className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 border dark:border-zinc-800"
+      className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm p-5 sm:p-6 border border-zinc-200 dark:border-zinc-800 scroll-mt-24"
       id="addresses"
     >
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-zinc-900 dark:text-white">
+        <h3 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-white">
           Saved Addresses
         </h3>
         {!showForm && (
           <button
             onClick={() => setShowForm(true)}
-            className="bg-amber-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-amber-600 transition-colors text-sm flex items-center gap-2"
+            className="bg-amber-500 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold hover:bg-amber-600 transition-colors text-xs sm:text-sm flex items-center gap-1.5 shadow-sm active:scale-95"
           >
-            <span className="material-symbols-outlined text-base">add</span>
+            <span className="material-symbols-outlined text-lg">add</span>
             Add New
           </button>
         )}
       </div>
 
       {showForm && (
-        <div className="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 mb-6 space-y-4">
-          <h4 className="font-semibold text-zinc-900 dark:text-white">
+        <div className="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 mb-6 space-y-4 bg-zinc-50 dark:bg-zinc-800/30">
+          <h4 className="font-bold text-zinc-900 dark:text-white text-sm">
             Add a New Address
           </h4>
           <div>
-            <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
-              Label (e.g., Home, Work)
-            </label>
             <input
               type="text"
               value={newAddress.label}
               onChange={(e) =>
                 setNewAddress({ ...newAddress, label: e.target.value })
               }
-              placeholder="Enter label"
-              className="mt-1 block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-500/20 sm:text-sm p-2"
+              placeholder="Label (e.g. Home)"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2.5 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
-              Address Details
-            </label>
             <textarea
               rows="2"
               value={newAddress.details}
               onChange={(e) =>
                 setNewAddress({ ...newAddress, details: e.target.value })
               }
-              placeholder="Enter full address"
-              className="mt-1 block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-500/20 sm:text-sm p-2"
+              placeholder="Address Details"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2.5 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none resize-none"
             />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <input
               id="isPrimary"
               type="checkbox"
@@ -133,89 +126,94 @@ const AddressesCard = () => {
             />
             <label
               htmlFor="isPrimary"
-              className="text-zinc-700 dark:text-zinc-300"
+              className="text-sm text-zinc-700 dark:text-zinc-300"
             >
               Set as Primary
             </label>
           </div>
-          <div className="flex justify-between items-center pt-2">
+          <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setShowForm(false)}
-              className="text-sm font-medium text-red-500 hover:underline"
+              className="text-sm font-medium text-zinc-500 hover:text-zinc-700"
             >
               Cancel
             </button>
             <button
               onClick={handleAddAddress}
               disabled={loading}
-              className="bg-amber-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-amber-600 transition-colors text-sm"
+              className="bg-amber-500 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-amber-600 transition-colors"
             >
-              {loading ? "Saving..." : "Save Address"}
+              {loading ? "Saving..." : "Save"}
             </button>
           </div>
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {addresses.map((address, index) => (
           <div
             key={address._id || index}
-            className="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 flex justify-between items-start hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+            className="border border-zinc-200 dark:border-zinc-700 rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 hover:border-amber-200 dark:hover:border-zinc-600 transition-colors"
           >
             <div>
-              <p className="font-semibold text-zinc-900 dark:text-white">
+              <p className="font-bold text-zinc-900 dark:text-white text-sm sm:text-base flex items-center gap-2">
                 {address.label}
+                {address.isPrimary && (
+                  <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                    Primary
+                  </span>
+                )}
               </p>
-              <p className="text-zinc-500 dark:text-zinc-400">
+              <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">
                 {address.details}
               </p>
-              {address.isPrimary && (
-                <span className="mt-1 inline-block bg-amber-50 text-amber-600 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                  Primary
-                </span>
-              )}
             </div>
-            <div className="flex items-center gap-2">
+
+            <div className="flex items-center gap-3 sm:gap-2 self-end sm:self-center">
               {!address.isPrimary && (
                 <button
                   onClick={() =>
                     handleTogglePrimary(address._id || address.label)
                   }
-                  className="text-zinc-500 hover:text-amber-600 text-sm font-medium"
+                  className="text-amber-600 hover:text-amber-700 text-xs sm:text-sm font-medium"
                 >
-                  Set Primary
+                  Make Primary
                 </button>
               )}
               <button
                 onClick={() => setDeleteId(address._id)}
-                className="text-zinc-500 hover:text-red-500"
+                className="text-zinc-400 hover:text-red-500 p-1"
+                aria-label="Delete"
               >
-                <span className="material-symbols-outlined">delete</span>
+                <span className="material-symbols-outlined text-lg">
+                  delete
+                </span>
               </button>
             </div>
           </div>
         ))}
       </div>
 
+      {/* Delete Confirmation Modal (Same logic) */}
       {deleteId !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-xl max-w-md w-full p-6 shadow-lg border dark:border-zinc-700">
-            <h4 className="text-lg font-semibold mb-2 dark:text-white">
-              Confirm Deletion
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="bg-white dark:bg-zinc-900 rounded-xl max-w-sm w-full p-6 shadow-2xl border dark:border-zinc-800">
+            <h4 className="text-lg font-bold mb-2 dark:text-white">
+              Delete Address?
             </h4>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-              Are you sure you want to delete this address?
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
+              This action cannot be undone.
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setDeleteId(null)}
-                className="px-4 py-2 rounded-md border dark:border-zinc-700 text-sm font-medium dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                className="px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDelete}
-                className="px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium"
+                className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-bold hover:bg-red-700"
               >
                 Delete
               </button>

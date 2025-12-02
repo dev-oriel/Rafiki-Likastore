@@ -1,15 +1,11 @@
 import React from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { formatCurrency } from "../../utils/formatCurrency"; // Import KES formatter
-import toast from "react-hot-toast";
+import { formatCurrency } from "../../utils/formatCurrency";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
-// This is the inner card component
 const FavoriteItem = ({ product, onRemove }) => {
-  const navigate = useNavigate();
-
   const imageUrl = product.image.startsWith("http")
     ? product.image
     : `${API_BASE_URL}${product.image}`;
@@ -20,7 +16,7 @@ const FavoriteItem = ({ product, onRemove }) => {
       : product.price;
 
   return (
-    <div className="min-w-[220px] bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm flex flex-col items-center p-4 relative hover:shadow-md transition-all">
+    <div className="min-w-[160px] sm:min-w-[200px] bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm flex flex-col items-center p-3 sm:p-4 relative hover:shadow-md transition-all snap-center">
       <Link
         to={`/product/${product._id}`}
         className="cursor-pointer w-full flex flex-col items-center"
@@ -28,22 +24,22 @@ const FavoriteItem = ({ product, onRemove }) => {
         <img
           src={imageUrl}
           alt={product.name}
-          className="w-28 h-28 rounded-lg object-contain mb-3"
+          className="w-20 h-20 sm:w-28 sm:h-28 rounded-lg object-contain mb-3"
         />
-        <p className="font-semibold text-zinc-900 dark:text-white text-center">
+        <p className="font-bold text-sm sm:text-base text-zinc-900 dark:text-white text-center line-clamp-2 leading-tight">
           {product.name}
         </p>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center">
+        <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 text-center mt-1">
           {formatCurrency(priceToDisplay)}
         </p>
       </Link>
       <button
-        className="absolute top-3 right-3 text-red-600 hover:text-red-700 transition"
+        className="absolute top-2 right-2 text-red-500 hover:text-red-600 transition bg-white/80 dark:bg-black/20 rounded-full p-1"
         aria-label="remove favorite"
         onClick={onRemove}
       >
         <span
-          className="material-symbols-outlined text-2xl"
+          className="material-symbols-outlined text-lg sm:text-xl"
           style={{ fontVariationSettings: "'FILL' 1" }}
         >
           favorite
@@ -53,7 +49,6 @@ const FavoriteItem = ({ product, onRemove }) => {
   );
 };
 
-// This is the main component for the profile page
 const FavoritesCard = () => {
   const { user, toggleFavorite } = useAuth();
   const favorites = user?.favorites || [];
@@ -64,33 +59,33 @@ const FavoritesCard = () => {
 
   return (
     <div
-      className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 border dark:border-zinc-800"
+      className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm p-5 sm:p-6 border border-zinc-200 dark:border-zinc-800 scroll-mt-24"
       id="favorites"
     >
-      <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-4">
+      <h3 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-white mb-4">
         My Favorites
       </h3>
 
       {favorites.length > 0 ? (
-        <div className="flex overflow-x-auto space-x-4 pb-3 -mb-3">
+        // Horizontal scroll container with snap scrolling
+        <div className="flex overflow-x-auto space-x-3 sm:space-x-4 pb-4 -mb-2 custom-scrollbar snap-x snap-mandatory">
           {favorites.map((product) => (
             <FavoriteItem
               key={product._id}
               product={product}
               onRemove={() => handleRemoveFavorite(product._id)}
-              // Pass props explicitly for the FavoriteItem
-              img={product.image}
-              title={product.name}
-              subtitle={formatCurrency(product.price)}
-              link={`/product/${product._id}`}
             />
           ))}
         </div>
       ) : (
-        <p className="text-zinc-500 dark:text-zinc-400 text-sm text-center py-6">
-          You haven’t added any favorites yet. Click the heart icon on a product
-          to save it here.
-        </p>
+        <div className="text-center py-8 border-2 border-dashed border-zinc-100 dark:border-zinc-800 rounded-lg">
+          <span className="material-symbols-outlined text-3xl text-zinc-300 mb-2">
+            favorite_border
+          </span>
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm">
+            No favorites saved yet.
+          </p>
+        </div>
       )}
     </div>
   );

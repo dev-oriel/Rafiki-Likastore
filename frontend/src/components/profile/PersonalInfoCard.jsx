@@ -36,15 +36,12 @@ const PersonalInfoCard = () => {
 
     try {
       setSaving(true);
-
-      // We already have a PUT /api/users/profile route
       const { data } = await api.put(`/users/profile`, {
         name: form.name,
         email: form.email,
         phone: form.phone,
       });
 
-      // Update context
       if (typeof refreshUser === "function") {
         await refreshUser();
       } else if (typeof setUser === "function") {
@@ -63,19 +60,19 @@ const PersonalInfoCard = () => {
 
   return (
     <div
-      className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 border dark:border-zinc-800"
+      className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm p-5 sm:p-6 border border-zinc-200 dark:border-zinc-800 scroll-mt-24"
       id="personal-info"
     >
-      <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-6">
+      <h3 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-white mb-6">
         Personal Information
       </h3>
 
-      <form className="space-y-6" onSubmit={handleSaveChanges}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form className="space-y-5" onSubmit={handleSaveChanges}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-zinc-600 dark:text-zinc-400"
+              className="block text-sm font-bold text-zinc-700 dark:text-zinc-300 mb-1"
             >
               Full Name
             </label>
@@ -85,7 +82,7 @@ const PersonalInfoCard = () => {
               type="text"
               value={form.name}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-500/20 sm:text-sm p-2"
+              className="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2.5 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
               required
             />
           </div>
@@ -93,7 +90,7 @@ const PersonalInfoCard = () => {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-zinc-600 dark:text-zinc-400"
+              className="block text-sm font-bold text-zinc-700 dark:text-zinc-300 mb-1"
             >
               Email Address
             </label>
@@ -103,15 +100,15 @@ const PersonalInfoCard = () => {
               type="email"
               value={form.email}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-500/20 sm:text-sm p-2"
+              className="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2.5 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
               required
             />
           </div>
 
-          <div>
+          <div className="md:col-span-2">
             <label
               htmlFor="phone"
-              className="block text-sm font-medium text-zinc-600 dark:text-zinc-400"
+              className="block text-sm font-bold text-zinc-700 dark:text-zinc-300 mb-1"
             >
               Phone Number
             </label>
@@ -121,18 +118,17 @@ const PersonalInfoCard = () => {
               type="tel"
               value={form.phone}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-500/20 sm:text-sm p-2"
+              placeholder="e.g. 0712345678"
+              className="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2.5 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
             />
           </div>
         </div>
 
-        {/* We can add password change later */}
-
-        <div className="flex justify-end items-center gap-3 pt-4">
+        <div className="flex justify-end items-center pt-2">
           <button
             type="submit"
             disabled={!isEditing || saving}
-            className="bg-amber-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-amber-600 transition-colors disabled:opacity-50"
+            className="bg-amber-500 text-white px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-amber-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md active:scale-95"
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
