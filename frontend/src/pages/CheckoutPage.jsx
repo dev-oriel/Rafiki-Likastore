@@ -167,7 +167,7 @@ const CheckoutPage = () => {
             className="flex flex-col lg:flex-row gap-8 lg:gap-12"
           >
             {/* Forms Section */}
-            <div className="flex-grow space-y-6 sm:space-y-8 order-2 lg:order-1">
+            <div className="grow space-y-6 sm:space-y-8 order-2 lg:order-1">
               <DeliveryInfoForm
                 deliveryLocation={deliveryLocation}
                 setDeliveryLocation={setDeliveryLocation}
