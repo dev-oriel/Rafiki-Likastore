@@ -6,13 +6,12 @@ import api from "../services/api";
 import toast from "react-hot-toast";
 import { Loader } from "lucide-react";
 
-// 1. Import all the child components
+// Child components
 import CheckoutSummary from "../components/checkout/CheckoutSummary";
 import PaymentPollingModal from "../components/checkout/PaymentPollingModal";
 import DeliveryInfoForm from "../components/checkout/DeliveryInfoForm";
 import PaymentMethodForm from "../components/checkout/PaymentMethodForm";
 
-// Helper to format phone for M-Pesa
 const formatPhoneForMpesa = (phone) => {
   let num = phone.replace(/\s/g, "").replace("+", "");
   if (num.startsWith("0")) {
@@ -21,7 +20,6 @@ const formatPhoneForMpesa = (phone) => {
   return num;
 };
 
-// Helper to validate phone
 const isValidPhone = (phone) => {
   const num = phone.replace(/\s/g, "").replace("+", "");
   return (
@@ -38,7 +36,6 @@ const CheckoutPage = () => {
   const [pollingOrderId, setPollingOrderId] = useState(null);
   const navigate = useNavigate();
 
-  // Find primary address and payment from user
   const primaryAddress = useMemo(
     () => user?.addresses?.find((a) => a.isPrimary) || null,
     [user]
@@ -52,11 +49,9 @@ const CheckoutPage = () => {
     [user]
   );
 
-  // State for the forms
   const [deliveryLocation, setDeliveryLocation] = useState("");
   const [paymentPhone, setPaymentPhone] = useState(primaryPayment.number);
 
-  // Pre-fill forms when user data loads
   useEffect(() => {
     if (primaryAddress) {
       setDeliveryLocation(primaryAddress.details);
@@ -67,7 +62,6 @@ const CheckoutPage = () => {
     setPaymentPhone(primaryPayment.number);
   }, [primaryPayment.number]);
 
-  // Polling logic
   useEffect(() => {
     if (!isWaitingForPayment || !pollingOrderId) return;
     let intervalId;
@@ -161,17 +155,19 @@ const CheckoutPage = () => {
   return (
     <>
       {isWaitingForPayment && <PaymentPollingModal orderId={pollingOrderId} />}
-      <main className="flex-1 py-10 md:py-16">
+
+      <main className="flex-1 py-6 sm:py-10 md:py-16 bg-zinc-50 dark:bg-black/20">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h1 className="text-zinc-900 dark:text-gray-100 text-4xl md:text-5xl font-black leading-tight tracking-[-0.033em] mb-8">
+          <h1 className="text-zinc-900 dark:text-gray-100 text-2xl sm:text-4xl md:text-5xl font-black leading-tight tracking-[-0.033em] mb-6 sm:mb-8">
             Checkout
           </h1>
+
           <form
             onSubmit={handlePlaceOrder}
-            className="flex flex-col lg:flex-row gap-12 lg:gap-8"
+            className="flex flex-col lg:flex-row gap-8 lg:gap-12"
           >
-            <div className="flex-grow space-y-8">
-              {/* 2. Use the imported components */}
+            {/* Forms Section */}
+            <div className="flex-grow space-y-6 sm:space-y-8 order-2 lg:order-1">
               <DeliveryInfoForm
                 deliveryLocation={deliveryLocation}
                 setDeliveryLocation={setDeliveryLocation}
@@ -182,21 +178,23 @@ const CheckoutPage = () => {
               />
             </div>
 
-            <div className="w-full lg:w-96 lg:shrink-0">
-              <div className="sticky top-28 space-y-4">
+            {/* Summary Section */}
+            <div className="w-full lg:w-96 lg:shrink-0 order-1 lg:order-2">
+              <div className="lg:sticky lg:top-24 space-y-4">
                 <CheckoutSummary
                   items={cartItems}
                   subtotal={subtotal}
                   deliveryFee={deliveryFee}
                   total={total}
                 />
+
                 <button
                   type="submit"
                   disabled={loading || isWaitingForPayment}
-                  className="w-full mt-4 bg-amber-500 text-white font-bold py-3.5 px-4 rounded-full text-base hover:bg-amber-600 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full mt-4 bg-amber-500 text-white font-bold py-3.5 px-6 rounded-full text-base hover:bg-amber-600 shadow-lg shadow-amber-500/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
-                    <Loader className="animate-spin" size={20} />
+                    <Loader className="animate-spin" size={24} />
                   ) : (
                     "Place Order & Pay"
                   )}
