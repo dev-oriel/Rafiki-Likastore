@@ -1,32 +1,48 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import logo from "../../assets/4.png";
- 
+
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
-  const { user } = useAuth(); // Use our AuthContext
-  const { itemCount } = useCart(); // Use real itemCount from CartContext
+  const { user } = useAuth();
+  const { itemCount } = useCart();
 
   const handleSubmitSearch = (e) => {
     e?.preventDefault?.();
     const trimmed = (query || "").trim();
-    navigate(`/shop${trimmed ? `?query=${encodeURIComponent(trimmed)}` : ""}`);
+    navigate(
+      `/shop${trimmed ? `?keyword=${encodeURIComponent(trimmed)}` : ""}`
+    ); // Fixed query param to 'keyword' to match ShopPage
     setQuery("");
   };
 
-  // Base URL for images
-  const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", ""); // http://localhost:5000
+  const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
-  // Avatar URL with fallback
-  const avatarSrc = user?.avatar
-    ? `${API_BASE_URL}${user.avatar}` // e.g., http://localhost:5000/uploads/avatar-123.png
-    : `https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || "User"}`;
+  // --- IMAGE URL LOGIC ---
+  const getAvatarUrl = () => {
+    if (!user?.avatar) {
+      return `https://api.dicebear.com/7.x/initials/svg?seed=${
+        user?.name || "User"
+      }`;
+    }
+    if (user.avatar.startsWith("http")) return user.avatar;
 
-  // Helper for NavLink active state
+    // Fix Windows paths and ensure leading slash
+    const cleanPath = user.avatar.replace(/\\/g, "/");
+    const formattedPath = cleanPath.startsWith("/")
+      ? cleanPath
+      : `/${cleanPath}`;
+
+    return `${API_BASE_URL}${formattedPath}`;
+  };
+
+  const avatarSrc = getAvatarUrl();
+  // ----------------------
+
   const getNavLinkClass = ({ isActive }) =>
     `text-base font-medium transition-colors ${
       isActive
@@ -34,8 +50,6 @@ const Navbar = () => {
         : "text-zinc-700 dark:text-zinc-300 hover:text-amber-600 dark:hover:text-amber-500"
     }`;
 
-  // --- THIS IS THE FIX ---
-  // Links for mobile and desktop
   const navLinks = (
     <>
       <NavLink
@@ -52,7 +66,6 @@ const Navbar = () => {
       >
         Shop
       </NavLink>
-      {/* 1. Added the Offers link */}
       <NavLink
         to="/offers"
         className={getNavLinkClass}
@@ -71,7 +84,6 @@ const Navbar = () => {
       )}
     </>
   );
-  // --- END OF FIX ---
 
   return (
     <header className="sticky top-0 z-50 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-lg shadow-sm border-b border-zinc-200 dark:border-zinc-800">
@@ -85,7 +97,11 @@ const Navbar = () => {
               className="flex items-center gap-2"
             >
               <div className="h-8 w-8 text-amber-500">
-                <img src={logo} alt="" />
+                <img
+                  src={logo}
+                  alt=""
+                  className="w-full h-full object-contain"
+                />
               </div>
               <span className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tighter">
                 Rafiki Likastore
@@ -151,7 +167,7 @@ const Navbar = () => {
                     className="group"
                   >
                     <div
-                      className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 h-10 ring-2 ring-transparent group-hover:ring-amber-500 transition-all"
+                      className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 h-10 ring-2 ring-transparent group-hover:ring-amber-500 transition-all border border-zinc-200 dark:border-zinc-700"
                       style={{ backgroundImage: `url('${avatarSrc}')` }}
                     />
                   </button>
@@ -203,17 +219,27 @@ const Navbar = () => {
       >
         <div className="container mx-auto px-4 py-4">
           <nav className="flex flex-col gap-3" aria-label="Mobile navigation">
-            {/* 2. The navLinks variable now includes "Offers" */}
             {navLinks}
             <hr className="dark:border-zinc-700" />
             {user ? (
-              <NavLink
-                to="/profile"
-                className={getNavLinkClass}
-                onClick={() => setMobileOpen(false)}
+              <div
+                className="flex items-center gap-3 pt-2"
+                onClick={() => {
+                  navigate("/profile");
+                  setMobileOpen(false);
+                }}
               >
-                My Profile
-              </NavLink>
+                <div
+                  className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 h-10 border border-zinc-200 dark:border-zinc-700"
+                  style={{ backgroundImage: `url('${avatarSrc}')` }}
+                />
+                <div>
+                  <p className="font-semibold text-zinc-900 dark:text-white">
+                    {user.name}
+                  </p>
+                  <p className="text-xs text-zinc-500">View Profile</p>
+                </div>
+              </div>
             ) : (
               <>
                 <NavLink

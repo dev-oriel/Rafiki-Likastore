@@ -6,11 +6,30 @@ import toast from "react-hot-toast";
 
 const ProfileSidebar = () => {
   const { user, logout, refreshUser } = useAuth();
+
+  // Base URL (e.g., http://localhost:5000)
   const API_BASE_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
   const profileImageDefault = `https://api.dicebear.com/7.x/initials/svg?seed=${
     user?.name || "User"
   }`;
+
+  // --- HELPER FUNCTION FOR IMAGES ---
+  const getImageUrl = (path) => {
+    if (!path) return profileImageDefault;
+    if (path.startsWith("http")) return path;
+
+    // 1. Replace backslashes with forward slashes (Windows fix)
+    const cleanPath = path.replace(/\\/g, "/");
+
+    // 2. Ensure it starts with a slash
+    const formattedPath = cleanPath.startsWith("/")
+      ? cleanPath
+      : `/${cleanPath}`;
+
+    return `${API_BASE_URL}${formattedPath}`;
+  };
+  // ----------------------------------
 
   const [profileImagePreview, setProfileImagePreview] =
     useState(profileImageDefault);
@@ -18,9 +37,10 @@ const ProfileSidebar = () => {
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
+  // Update preview when user data changes
   useEffect(() => {
     if (user?.avatar) {
-      setProfileImagePreview(`${API_BASE_URL}${user.avatar}`);
+      setProfileImagePreview(getImageUrl(user.avatar));
     } else {
       setProfileImagePreview(profileImageDefault);
     }
@@ -34,6 +54,10 @@ const ProfileSidebar = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Optimistic UI update (Show image immediately before upload finishes)
+    const objectUrl = URL.createObjectURL(file);
+    setProfileImagePreview(objectUrl);
+
     const formData = new FormData();
     formData.append("avatar", file);
 
@@ -42,8 +66,11 @@ const ProfileSidebar = () => {
       const uploadRes = await api.post("/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      const { path } = uploadRes.data;
+
+      const { path } = uploadRes.data; // This might be "uploads\image.png"
+
       await api.put("/users/profile", { avatar: path });
+
       if (typeof refreshUser === "function") {
         await refreshUser();
       }
@@ -51,9 +78,8 @@ const ProfileSidebar = () => {
     } catch (err) {
       const errorMsg = err?.response?.data?.message || "Failed to save avatar.";
       toast.error(errorMsg);
-      setProfileImagePreview(
-        user?.avatar ? `${API_BASE_URL}${user.avatar}` : profileImageDefault
-      );
+      // Revert on failure
+      setProfileImagePreview(getImageUrl(user?.avatar));
     } finally {
       setSaving(false);
     }
@@ -70,7 +96,8 @@ const ProfileSidebar = () => {
         <div className="relative mb-4">
           <div
             className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-cover bg-center border-4 border-amber-500 shadow-sm"
-            style={{ backgroundImage: `url(${profileImagePreview})` }}
+            // Use the state which is now safe
+            style={{ backgroundImage: `url('${profileImagePreview}')` }}
           />
           <button
             onClick={handleEditClick}
