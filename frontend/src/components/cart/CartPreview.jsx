@@ -96,7 +96,7 @@ const CartPreview = ({ onClose }) => {
                   return (
                     <div key={item._id} className="flex gap-4 group">
                       {/* Image */}
-                      <div className="relative w-16 h-16 rounded-xl bg-zinc-50 dark:bg-zinc-800 flex-shrink-0 border border-zinc-100 dark:border-zinc-700 overflow-hidden">
+                      <div className="relative w-16 h-16 rounded-xl bg-zinc-50 dark:bg-zinc-800 shrink-0 border border-zinc-100 dark:border-zinc-700 overflow-hidden">
                         <img
                           alt={item.name}
                           className="w-full h-full object-contain p-1"

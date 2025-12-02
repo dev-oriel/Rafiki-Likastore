@@ -9,71 +9,82 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
     ? item.image
     : `${API_BASE_URL}${item.image}`;
 
-  // --- THIS IS THE FIX ---
-  // 1. Determine the correct price to use
   const priceToUse =
     item.isOnSale && item.discountedPrice > 0
       ? item.discountedPrice
       : item.price;
-  // --- END OF FIX ---
 
   return (
-    <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800 shadow-sm">
-      <Link to={`/product/${item._id}`}>
-        <img
-          src={imageUrl}
-          alt={item.name}
-          className="size-20 rounded-lg object-contain bg-zinc-50 dark:bg-zinc-800"
-        />
+    <div className="flex items-start gap-3 bg-white dark:bg-zinc-900 rounded-xl p-2.5 sm:p-4 border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all hover:shadow-md">
+      {/* 1. IMAGE (Fixed small size on mobile to save space) */}
+      <Link to={`/product/${item._id}`} className="shrink-0">
+        <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-lg bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700/50 flex items-center justify-center p-1">
+          <img
+            src={imageUrl}
+            alt={item.name}
+            className="w-full h-full object-contain"
+          />
+        </div>
       </Link>
 
-      <div className="grow">
-        <Link to={`/product/${item._id}`} className="hover:underline">
-          <p className="text-zinc-900 dark:text-gray-200 text-base font-bold leading-normal line-clamp-1">
-            {item.name}
-          </p>
-        </Link>
-        {/* 2. Use the correct price */}
-        <p className="text-zinc-500 dark:text-gray-400 text-sm font-normal leading-normal">
-          {formatCurrency(priceToUse)}
-        </p>
-      </div>
+      {/* 2. CONTENT AREA (Grows to fill space) */}
+      <div className="flex flex-col grow min-w-0 justify-between sm:justify-center h-full sm:h-24 py-0.5">
+        {/* Top Row: Title & Remove Button */}
+        <div className="flex justify-between items-start gap-2">
+          <div className="min-w-0">
+            <Link
+              to={`/product/${item._id}`}
+              className="block hover:text-amber-600 transition-colors"
+            >
+              <h3 className="text-xs sm:text-base font-bold text-zinc-900 dark:text-gray-100 truncate leading-tight">
+                {item.name}
+              </h3>
+            </Link>
+            <p className="text-[10px] sm:text-sm text-zinc-500 dark:text-gray-400 font-medium">
+              {formatCurrency(priceToUse)}
+            </p>
+          </div>
 
-      {/* Quantity Adjuster */}
-      <div className="shrink-0">
-        <div className="flex items-center gap-2 text-zinc-900 dark:text-gray-200">
+          {/* Remove Button (Icon only to save space) */}
           <button
-            onClick={() => onUpdateQuantity(item._id, item.quantity - 1)}
-            className="text-lg font-medium leading-normal flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer transition-colors"
+            onClick={() => onRemove(item._id)}
+            className="text-zinc-400 hover:text-red-500 dark:hover:text-red-400 -mt-1 -mr-1 p-1 shrink-0"
+            aria-label="Remove"
           >
-            -
-          </button>
-          <span className="text-base font-medium w-6 text-center">
-            {item.quantity}
-          </span>
-          <button
-            onClick={() => onUpdateQuantity(item._id, item.quantity + 1)}
-            className="text-lg font-medium leading-normal flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer transition-colors"
-          >
-            +
+            <span className="material-symbols-outlined text-lg sm:text-xl">
+              close
+            </span>
           </button>
         </div>
+
+        {/* Bottom Row: Quantity & Total Price */}
+        <div className="flex items-center justify-between mt-2 sm:mt-auto">
+          {/* Compact Quantity Control */}
+          <div className="flex items-center bg-zinc-100 dark:bg-zinc-800 rounded-md h-6 sm:h-8">
+            <button
+              onClick={() => onUpdateQuantity(item._id, item.quantity - 1)}
+              className="w-6 h-full flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-l-md text-zinc-600 dark:text-zinc-300 disabled:opacity-50"
+              disabled={item.quantity <= 1}
+            >
+              <span className="text-xs sm:text-sm font-bold">-</span>
+            </button>
+            <span className="w-6 text-center text-xs sm:text-sm font-bold text-zinc-900 dark:text-white">
+              {item.quantity}
+            </span>
+            <button
+              onClick={() => onUpdateQuantity(item._id, item.quantity + 1)}
+              className="w-6 h-full flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-r-md text-zinc-600 dark:text-zinc-300"
+            >
+              <span className="text-xs sm:text-sm font-bold">+</span>
+            </button>
+          </div>
+
+          {/* Total Price */}
+          <p className="text-[12px] sm:text-lg font-black text-zinc-900 dark:text-gray-100">
+            {formatCurrency(priceToUse * item.quantity)}
+          </p>
+        </div>
       </div>
-
-      {/* Total Price */}
-      <p className="text-base font-bold w-20 text-right text-zinc-900 dark:text-gray-200 hidden sm:block">
-        {/* 3. Use the correct total */}
-        {formatCurrency(priceToUse * item.quantity)}
-      </p>
-
-      {/* Remove Button */}
-      <button
-        onClick={() => onRemove(item._id)}
-        className="text-zinc-500 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-        title="Remove item"
-      >
-        <span className="material-symbols-outlined">delete</span>
-      </button>
     </div>
   );
 };
